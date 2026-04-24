@@ -16,6 +16,10 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Standalone Projects (run locally)
+
+- `peg-portal-engine/` — Python Flask app (provisions WordPress installs via SSH/WP-CLI/REST). Designed to run locally on the user's Windows machine with VS Code, NOT on Replit. See its README for setup.
+
 ## Key Commands
 
 - `pnpm run typecheck` — full typecheck across all packages

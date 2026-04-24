@@ -1,0 +1,68 @@
+[
+  {
+    "titulo": "Início",
+    "slug": "inicio",
+    "status": "publish",
+    "conteudo": "<p>Bem-vindo ao {portal_name}. Acompanhe as principais notícias sobre {niche}.</p>"
+  },
+  {
+    "titulo": "Sobre",
+    "slug": "sobre",
+    "status": "publish",
+    "conteudo": "<p>O {portal_name} é um portal de notícias dedicado a cobrir os principais acontecimentos sobre {niche}.</p>"
+  },
+  {
+    "titulo": "Quem Somos",
+    "slug": "quem-somos",
+    "status": "publish",
+    "conteudo": "<p>Conheça a equipe por trás do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Contato",
+    "slug": "contato",
+    "status": "publish",
+    "conteudo": "<p>Entre em contato com a redação do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Política de Privacidade",
+    "slug": "politica-de-privacidade",
+    "status": "publish",
+    "conteudo": "<p>Esta política de privacidade descreve como o {portal_name} coleta e utiliza informações.</p>"
+  },
+  {
+    "titulo": "Termos de Uso",
+    "slug": "termos-de-uso",
+    "status": "publish",
+    "conteudo": "<p>Ao acessar o {portal_name}, você concorda com estes termos de uso.</p>"
+  },
+  {
+    "titulo": "Política Editorial",
+    "slug": "politica-editorial",
+    "status": "publish",
+    "conteudo": "<p>Conheça os princípios editoriais que guiam o {portal_name}.</p>"
+  },
+  {
+    "titulo": "Expediente",
+    "slug": "expediente",
+    "status": "publish",
+    "conteudo": "<p>Expediente e informações legais do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Anuncie",
+    "slug": "anuncie",
+    "status": "publish",
+    "conteudo": "<p>Saiba como anunciar no {portal_name} e alcance nosso público.</p>"
+  },
+  {
+    "titulo": "Correções",
+    "slug": "correcoes",
+    "status": "publish",
+    "conteudo": "<p>Política de correções e transparência do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Mapa do Site",
+    "slug": "mapa-do-site",
+    "status": "publish",
+    "conteudo": "<p>Navegue por todas as seções do {portal_name}.</p>"
+  }
+]

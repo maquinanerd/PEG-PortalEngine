@@ -1,0 +1,56 @@
+{
+  "entretenimento": [
+    {"nome": "Celebridades",  "slug": "celebridades",  "descricao": "Notícias sobre famosos"},
+    {"nome": "Cinema",        "slug": "cinema",         "descricao": "Filmes e séries"},
+    {"nome": "Música",        "slug": "musica",         "descricao": "Lançamentos e artistas"},
+    {"nome": "TV",            "slug": "tv",             "descricao": "Programação televisiva"}
+  ],
+  "financas": [
+    {"nome": "Investimentos", "slug": "investimentos",  "descricao": "Renda fixa e variável"},
+    {"nome": "Economia",      "slug": "economia",       "descricao": "Indicadores econômicos"},
+    {"nome": "Criptomoedas",  "slug": "criptomoedas",   "descricao": "Bitcoin e altcoins"},
+    {"nome": "Finanças Pessoais", "slug": "financas-pessoais", "descricao": "Orçamento e dívidas"}
+  ],
+  "imobiliario": [
+    {"nome": "Compra e Venda","slug": "compra-venda",   "descricao": "Mercado imobiliário"},
+    {"nome": "Aluguel",       "slug": "aluguel",        "descricao": "Locação residencial e comercial"},
+    {"nome": "Decoração",     "slug": "decoracao",      "descricao": "Ideias e tendências"},
+    {"nome": "Construção",    "slug": "construcao",     "descricao": "Obras e reformas"}
+  ],
+  "tecnologia": [
+    {"nome": "Inteligência Artificial", "slug": "inteligencia-artificial", "descricao": "IA e machine learning"},
+    {"nome": "Smartphones",   "slug": "smartphones",    "descricao": "Lançamentos e reviews"},
+    {"nome": "Segurança Digital", "slug": "seguranca-digital", "descricao": "Privacidade e ataques"},
+    {"nome": "Startups",      "slug": "startups",       "descricao": "Inovação e empreendedorismo"}
+  ],
+  "automotivo": [
+    {"nome": "Lançamentos",   "slug": "lancamentos-automotivo", "descricao": "Novos modelos"},
+    {"nome": "Elétricos",     "slug": "eletricos",      "descricao": "Carros elétricos e híbridos"},
+    {"nome": "Motos",         "slug": "motos",          "descricao": "Motocicletas e scooters"},
+    {"nome": "Manutenção",    "slug": "manutencao-auto","descricao": "Dicas e revisões"}
+  ],
+  "saude": [
+    {"nome": "Bem-estar",     "slug": "bem-estar",      "descricao": "Saúde física e mental"},
+    {"nome": "Nutrição",      "slug": "nutricao",       "descricao": "Alimentação saudável"},
+    {"nome": "Exercícios",    "slug": "exercicios",     "descricao": "Treinos e atividades físicas"},
+    {"nome": "Medicina",      "slug": "medicina",       "descricao": "Saúde e doenças"}
+  ],
+  "economia": [
+    {"nome": "Brasil",        "slug": "economia-brasil","descricao": "Cenário econômico nacional"},
+    {"nome": "Internacional", "slug": "economia-internacional", "descricao": "Economia global"},
+    {"nome": "Emprego",       "slug": "emprego",        "descricao": "Mercado de trabalho"},
+    {"nome": "Inflação",      "slug": "inflacao",       "descricao": "Preços e poder de compra"}
+  ],
+  "esportes": [
+    {"nome": "Futebol",       "slug": "futebol",        "descricao": "Campeonatos e transferências"},
+    {"nome": "Fórmula 1",     "slug": "formula-1",      "descricao": "GPs e bastidores"},
+    {"nome": "Basquete",      "slug": "basquete",       "descricao": "NBA e NBB"},
+    {"nome": "Outros Esportes","slug": "outros-esportes","descricao": "Modalidades diversas"}
+  ],
+  "lifestyle": [
+    {"nome": "Viagens",       "slug": "viagens",        "descricao": "Destinos e dicas"},
+    {"nome": "Gastronomia",   "slug": "gastronomia",    "descricao": "Restaurantes e receitas"},
+    {"nome": "Moda",          "slug": "moda",           "descricao": "Tendências e estilo"},
+    {"nome": "Casa e Jardim", "slug": "casa-jardim",    "descricao": "Decoração e plantas"}
+  ]
+}

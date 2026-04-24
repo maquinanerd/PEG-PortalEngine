@@ -1,0 +1,17 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+               Arial, sans-serif;
+}
+
+#log-area {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-line { display: block; }
+.log-ok    { color: #6ee7b7; }
+.log-aviso { color: #fbbf24; }
+.log-erro  { color: #fca5a5; }
+.log-info  { color: #cbd5e1; }
+.log-meta  { color: #93c5fd; }
+.log-muted { color: #94a3b8; }

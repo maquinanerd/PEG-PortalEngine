@@ -1,0 +1,10 @@
+[
+  {"slug": "seo-by-rank-math",    "nome": "Rank Math SEO",         "obrigatorio": true,  "requer_config_manual": true},
+  {"slug": "fast-indexing-api",   "nome": "Instant Indexing",      "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "classic-editor",      "nome": "Classic Editor",        "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "redirection",         "nome": "Redirection",           "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "wp-super-cache",      "nome": "WP Super Cache",        "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "redis-cache",         "nome": "Redis Object Cache",    "obrigatorio": false, "requer_redis": true, "requer_config_manual": false},
+  {"slug": "wp-mail-smtp",        "nome": "WP Mail SMTP",          "obrigatorio": true,  "requer_config_manual": true},
+  {"slug": "site-kit-by-google",  "nome": "Site Kit by Google",    "obrigatorio": false, "requer_config_manual": true}
+]

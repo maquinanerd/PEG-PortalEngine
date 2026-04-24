@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PEG Portal Engine</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container-fluid">
+    <span class="navbar-brand mb-0 h1">PEG Portal Engine</span>
+    <span class="text-white-50 small">Provisionamento de portais WordPress</span>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row g-4">
+
+    <!-- ===================== Form ===================== -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <strong>Configuracao</strong>
+        </div>
+        <div class="card-body">
+          <form id="form-config" autocomplete="off">
+
+            <h6 class="text-uppercase text-muted small mt-1 mb-2">Portal</h6>
+
+            <div class="mb-3">
+              <label class="form-label">Nome do portal</label>
+              <input type="text" class="form-control" name="portal_name"
+                     value="{{ env.PORTAL_NAME or '' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Nicho</label>
+              <select class="form-select" name="portal_niche" required>
+                {% for n in niches %}
+                  <option value="{{ n }}"
+                    {% if env.PORTAL_NICHE == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Dominio</label>
+              <input type="text" class="form-control" name="portal_domain"
+                     value="{{ env.PORTAL_DOMAIN or '' }}"
+                     placeholder="meusite.com.br" required>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">WordPress</h6>
+
+            <div class="mb-3">
+              <label class="form-label">URL do WordPress</label>
+              <input type="url" class="form-control" name="wp_url"
+                     value="{{ env.WP_URL or '' }}"
+                     placeholder="https://meusite.com.br" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Usuario WordPress</label>
+              <input type="text" class="form-control" name="wp_user"
+                     value="{{ env.WP_USER or '' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Application Password</label>
+              <input type="password" class="form-control" name="wp_app_password"
+                     value="{{ env.WP_APP_PASSWORD or '' }}"
+                     placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" required>
+              <div class="form-text">
+                Formato: <code>xxxx xxxx xxxx xxxx xxxx xxxx</code> (24 caracteres alfanumericos).
+              </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">SSH</h6>
+
+            <div class="row g-2">
+              <div class="col-8">
+                <label class="form-label">SSH host</label>
+                <input type="text" class="form-control" name="ssh_host"
+                       value="{{ env.SSH_HOST or '' }}" required>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Porta</label>
+                <input type="number" class="form-control" name="ssh_port"
+                       value="{{ env.SSH_PORT or '22' }}" required>
+              </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+              <label class="form-label">SSH user</label>
+              <input type="text" class="form-control" name="ssh_user"
+                     value="{{ env.SSH_USER or 'root' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">SSH password (opcional se usar chave)</label>
+              <input type="password" class="form-control" name="ssh_password"
+                     value="{{ env.SSH_PASSWORD or '' }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Caminho da chave privada SSH (opcional)</label>
+              <input type="text" class="form-control" name="ssh_key_path"
+                     value="{{ env.SSH_KEY_PATH or '' }}"
+                     placeholder="C:\Users\voce\.ssh\id_rsa">
+              <div class="form-text">
+                Use senha OU chave (mutuamente exclusivos). Chave com passphrase nao e suportada.
+              </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">VPS / WP-CLI</h6>
+
+            <div class="mb-3">
+              <label class="form-label">Caminho do WordPress no VPS</label>
+              <input type="text" class="form-control" name="wp_path"
+                     value="{{ env.WP_PATH or '' }}"
+                     placeholder="/var/www/meusite/htdocs" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Caminho do binario WP-CLI</label>
+              <input type="text" class="form-control" name="wpcli_bin"
+                     value="{{ env.WPCLI_BIN or '/usr/local/bin/wp' }}" required>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">Plugins opcionais</h6>
+            <div id="plugins-opcionais">
+              {% for p in plugins_opcionais %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="opcionais" value="{{ p.slug }}"
+                         id="opt-{{ p.slug }}">
+                  <label class="form-check-label" for="opt-{{ p.slug }}">
+                    {{ p.nome }} <small class="text-muted">({{ p.slug }})</small>
+                  </label>
+                </div>
+              {% else %}
+                <div class="text-muted small">Nenhum plugin opcional configurado.</div>
+              {% endfor %}
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== Acoes + Log ===================== -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-white"><strong>Acoes</strong></div>
+        <div class="card-body">
+
+          <div class="mb-2 fw-semibold small text-muted">Validacoes</div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    data-action="testar_ssh">Testar SSH</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    data-action="testar_rest">Testar REST API</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    data-action="validar_wp">Validar WordPress</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    data-action="validar_wpcli">Validar WP-CLI</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    data-action="verificar_redis">Verificar Redis</button>
+          </div>
+
+          <div class="mb-2 fw-semibold small text-muted">Provisionamento</div>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-action="instalar_plugins">Instalar plugins</button>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-action="configurar_wp">Configurar WordPress</button>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-action="criar_categorias">Criar categorias</button>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-action="criar_paginas">Criar paginas</button>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    data-action="criar_conteudo">Criar conteudo inicial</button>
+          </div>
+
+          <div class="mb-2 fw-semibold small text-muted">Tudo de uma vez</div>
+          <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-success btn-sm"
+                    data-action="setup_completo">Rodar setup completo</button>
+            <button type="button" class="btn btn-outline-dark btn-sm"
+                    data-action="gerar_relatorio">Gerar relatorio</button>
+            <button type="button" class="btn btn-link btn-sm ms-auto"
+                    id="btn-limpar-log">Limpar log</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between">
+          <strong>Log de execucao</strong>
+          <span class="text-muted small" id="log-status">aguardando…</span>
+        </div>
+        <div class="card-body p-0">
+          <pre id="log-area" class="m-0 p-3 bg-dark text-light"
+               style="height: 60vh; overflow:auto; font-size: 0.82rem;"></pre>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

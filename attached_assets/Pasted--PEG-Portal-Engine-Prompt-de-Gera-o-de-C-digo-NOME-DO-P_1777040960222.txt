@@ -1,0 +1,651 @@
+# PEG Portal Engine — Prompt de Geração de Código
+
+---
+
+## NOME DO PROJETO
+
+PEG Portal Engine
+
+---
+
+## OBJETIVO
+
+Criar um sistema local em Python para provisionar e configurar automaticamente
+instalações WordPress já criadas manualmente no CloudPanel.
+
+O sistema NÃO deve instalar WordPress.
+O sistema deve transformar um WordPress recém-criado em um portal editorial pronto para uso.
+
+O código será gerado no Replit, mas deve rodar localmente no VS Code (Windows).
+
+---
+
+## REQUISITOS GERAIS
+
+- Código portátil (não usar recursos exclusivos do Replit)
+- Sem banco de dados
+- Usar arquivos JSON para configuração
+- Código modular e organizado
+- Tratamento de erros obrigatório em todas as funções
+- Logs em tela e arquivo
+- Relatório final em Markdown
+- Nunca expor credenciais completas nos logs ou relatório
+- Usar pathlib.Path para todos os caminhos locais (compatibilidade Windows)
+- Usar strings com "/" diretamente para caminhos remotos no VPS (nunca os.path.join para paths remotos)
+
+---
+
+## STACK
+
+- Python 3.12+
+- Flask (painel local)
+- Paramiko (SSH)
+- Requests (REST API WordPress)
+- python-dotenv (.env)
+- Bootstrap 5 (CDN)
+
+---
+
+## ESTRUTURA DO PROJETO
+
+```
+peg-portal-engine/
+├── app.py
+├── requirements.txt
+├── .env.example
+├── README.md
+├── config/
+│   ├── plugins.json
+│   ├── categories.json
+│   ├── pages.json
+│   └── niches.json
+├── provisioner/
+│   ├── ssh_client.py
+│   ├── wpcli.py
+│   ├── wp_rest.py
+│   ├── tasks.py
+│   ├── logger.py
+│   └── utils.py
+├── templates/
+├── static/
+└── logs/
+```
+
+---
+
+## ARQUIVO .env.example
+
+Gerar o arquivo com todas as variáveis abaixo (sem valores reais):
+
+```
+WP_URL=https://meusite.com.br
+WP_USER=admin
+WP_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+SSH_HOST=0.0.0.0
+SSH_PORT=22
+SSH_USER=root
+SSH_PASSWORD=
+SSH_KEY_PATH=
+WP_PATH=/var/www/meusite/htdocs
+WPCLI_BIN=/usr/local/bin/wp
+PORTAL_NAME=Meu Portal
+PORTAL_NICHE=tecnologia
+PORTAL_DOMAIN=meusite.com.br
+LOG_LEVEL=INFO
+```
+
+---
+
+## INTERFACE (Flask)
+
+Rodar em: http://127.0.0.1:5000
+
+### Campos do formulário
+
+- Nome do portal
+- Nicho (select com as opções disponíveis em niches.json)
+- Domínio
+- URL do WordPress
+- Usuário WordPress
+- Application Password (campo password; exibir aviso: "formato: xxxx xxxx xxxx xxxx xxxx xxxx")
+- SSH host
+- SSH port (padrão: 22)
+- SSH user
+- SSH password (campo password, opcional se usar chave)
+- Caminho da chave privada SSH (opcional, path local do arquivo .pem ou .ppk)
+- Caminho do WordPress no VPS (ex: /var/www/meusite/htdocs)
+- Caminho do binário WP-CLI no VPS (padrão: /usr/local/bin/wp)
+
+### Botões de ação
+
+Cada botão deve exibir resultado em área de log na própria página (sem reload),
+via AJAX retornando JSON com campos: `status`, `message`, `details`.
+
+- Testar SSH
+- Testar REST API
+- Validar WordPress
+- Validar WP-CLI
+- Verificar Redis (necessário antes de instalar redis-cache)
+- Instalar plugins
+- Configurar WordPress
+- Criar categorias
+- Criar páginas
+- Criar conteúdo inicial
+- Rodar setup completo
+- Gerar relatório
+
+---
+
+## CAMADA SSH (ssh_client.py)
+
+### Autenticação
+
+Suportar dois modos mutuamente exclusivos:
+1. Senha: usar `ssh_password` se preenchido
+2. Chave privada: usar `ssh_key_path` (caminho local do arquivo) se senha estiver vazia
+
+Ao carregar chave privada, usar `paramiko.RSAKey.from_private_key_file(path)`.
+Tratar `paramiko.ssh_exception.PasswordRequiredException` se a chave for protegida por passphrase.
+
+### Funções obrigatórias
+
+```python
+def conectar(host, port, user, password=None, key_path=None, timeout=30) -> paramiko.SSHClient
+def executar(client, comando, timeout=60) -> dict  # {"stdout": str, "stderr": str, "exit_code": int}
+def fechar(client)
+def testar_conexao(host, port, user, password=None, key_path=None) -> dict  # {"ok": bool, "msg": str}
+```
+
+### Comportamento
+
+- Timeout configurável por comando
+- Retornar sempre stdout, stderr e exit_code
+- Nunca lançar exceção não tratada: capturar e retornar erro no dict
+- Logar cada comando executado (sem logar senhas)
+- Retry automático de conexão: 3 tentativas com intervalo de 5 segundos
+
+---
+
+## CAMADA WP-CLI (wpcli.py)
+
+### Regras obrigatórias para TODOS os comandos WP-CLI
+
+1. **Sempre usar o caminho absoluto do binário** configurado em `WPCLI_BIN`
+   (não assumir que `wp` está no PATH do shell SSH)
+
+2. **Sempre incluir `--path={wp_path}`** onde `wp_path` é o caminho do WordPress no VPS
+
+3. **Detectar automaticamente se SSH user == "root"** e, se sim, adicionar `--allow-root` em todos os comandos
+
+4. **Usar `--format=json`** em todos os comandos que retornam dados (listas, opções, versões)
+   Parsear com `json.loads()`. Tratar exceção `json.JSONDecodeError` se retorno não for JSON válido.
+
+5. **Adicionar `--skip-themes --skip-plugins`** apenas em comandos de verificação/info
+   para acelerar a execução (não usar em install/activate)
+
+### Exemplo de comando correto
+
+```python
+# Internamente, os comandos devem ser montados assim:
+def _build_cmd(self, subcommand: str, flags: list = None, json_output: bool = False) -> str:
+    parts = [self.wpcli_bin, subcommand, f"--path={self.wp_path}"]
+    if self.allow_root:
+        parts.append("--allow-root")
+    if json_output:
+        parts.append("--format=json")
+    if flags:
+        parts.extend(flags)
+    return " ".join(parts)
+```
+
+### Funções obrigatórias
+
+```python
+def verificar_wp() -> dict          # versão WP, URL, status
+def verificar_wpcli() -> dict       # versão WP-CLI
+def instalar_plugin(slug) -> dict   # instalar sem ativar
+def ativar_plugin(slug) -> dict     # ativar plugin já instalado
+def instalar_e_ativar(slug) -> dict # instalar + ativar em sequência
+def listar_plugins_ativos() -> list # retorna lista de slugs ativos
+def atualizar_opcao(key, value) -> dict
+def configurar_permalink(estrutura) -> dict
+def flush_rewrite() -> dict
+def flush_cache() -> dict
+def verificar_redis() -> dict       # executa "redis-cli ping" via SSH e verifica resposta PONG
+```
+
+---
+
+## PLUGINS (config/plugins.json)
+
+Definir no JSON com metadados:
+
+```json
+[
+  {"slug": "seo-by-rank-math",    "nome": "Rank Math SEO",         "obrigatorio": true,  "requer_config_manual": true},
+  {"slug": "fast-indexing-api",   "nome": "Instant Indexing",      "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "classic-editor",      "nome": "Classic Editor",        "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "redirection",         "nome": "Redirection",           "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "wp-super-cache",      "nome": "WP Super Cache",        "obrigatorio": true,  "requer_config_manual": false},
+  {"slug": "redis-cache",         "nome": "Redis Object Cache",    "obrigatorio": false, "requer_redis": true, "requer_config_manual": false},
+  {"slug": "wp-mail-smtp",        "nome": "WP Mail SMTP",          "obrigatorio": true,  "requer_config_manual": true},
+  {"slug": "site-kit-by-google",  "nome": "Site Kit by Google",    "obrigatorio": false, "requer_config_manual": true}
+]
+```
+
+### Lógica de instalação
+
+- Instalar e ativar todos os plugins com `"obrigatorio": true`
+- Para `redis-cache`: antes de instalar, verificar se Redis está disponível no servidor
+  rodando `redis-cli ping` via SSH. Instalar apenas se retornar `PONG`. Caso contrário,
+  registrar no relatório como "Redis não disponível — redis-cache não instalado".
+- Plugins com `"requer_config_manual": true` devem ser instalados/ativados normalmente,
+  mas registrados no relatório como **pendências de configuração manual**.
+- Plugins opcionais (`"obrigatorio": false`) devem ser pulados por padrão,
+  com opção de ativar individualmente via checkbox no formulário.
+- Para cada plugin: logar tentativa, resultado e erro (se houver).
+  Não interromper o processo se um plugin falhar — registrar o erro e continuar.
+
+---
+
+## CONFIGURAÇÃO DO WORDPRESS (wpcli.py + tasks.py)
+
+Aplicar via WP-CLI as seguintes opções:
+
+```python
+opcoes = {
+    "blogname":              portal_name,
+    "blogdescription":       f"Portal de notícias sobre {niche}",
+    "permalink_structure":   "/%postname%/",
+    "timezone_string":       "America/Sao_Paulo",
+    "date_format":           "d/m/Y",
+    "time_format":           "H:i",
+    "blog_public":           "1",
+    "default_comment_status": "closed",
+    "default_ping_status":   "closed",
+    "default_pingback_flag": "0",
+}
+```
+
+Após atualizar opções:
+1. Executar flush rewrite rules
+2. Executar flush cache
+
+---
+
+## SEO TÉCNICO
+
+Configurar via WP-CLI (opções do WordPress):
+
+- `blogname` → título do site
+- `blogdescription` → meta descrição base
+- `permalink_structure` → `/%postname%/`
+- `blog_public` → `1` (indexação ativa)
+
+Se páginas "Início" e "Blog" forem criadas:
+- Atualizar `show_on_front` para `page`
+- Atualizar `page_on_front` com o ID da página "Início"
+- Atualizar `page_for_posts` com o ID da página "Blog" (se criada)
+
+Rank Math: apenas instalar e ativar. O wizard de configuração do Rank Math
+**não pode ser automatizado** — registrar como pendência obrigatória no relatório.
+
+---
+
+## REST API (wp_rest.py)
+
+### Autenticação
+
+Usar HTTP Basic Auth com Application Password.
+
+**Validação do Application Password antes de usar:**
+- Remover espaços em excesso
+- Verificar se tem exatamente 24 caracteres alfanuméricos (após remover espaços)
+- Se inválido, retornar erro claro antes de fazer qualquer requisição
+
+### Endpoints de teste
+
+```
+GET {wp_url}/wp-json/
+GET {wp_url}/wp-json/wp/v2/users/me
+```
+
+### Funções obrigatórias
+
+```python
+def testar_api() -> dict
+def listar_categorias() -> list
+def criar_categoria(nome, slug, descricao, parent_id=None) -> dict
+def listar_paginas() -> list
+def criar_pagina(titulo, conteudo, status="publish", slug=None) -> dict
+def criar_post(titulo, conteudo, status="draft", categoria_ids=None) -> dict
+def pagina_existe(slug) -> bool       # verificar por slug antes de criar
+def categoria_existe(slug) -> bool    # verificar por slug antes de criar
+```
+
+### Deduplicação obrigatória
+
+Antes de criar qualquer página ou categoria:
+1. Buscar itens existentes via GET
+2. Comparar por slug
+3. Pular criação e logar "já existe" se encontrar duplicata
+
+---
+
+## CATEGORIAS (config/categories.json)
+
+Mapear por nicho. Cada nicho tem sua lista específica de categorias.
+
+```json
+{
+  "entretenimento": [
+    {"nome": "Celebridades",  "slug": "celebridades",  "descricao": "Notícias sobre famosos"},
+    {"nome": "Cinema",        "slug": "cinema",         "descricao": "Filmes e séries"},
+    {"nome": "Música",        "slug": "musica",         "descricao": "Lançamentos e artistas"},
+    {"nome": "TV",            "slug": "tv",             "descricao": "Programação televisiva"}
+  ],
+  "financas": [
+    {"nome": "Investimentos", "slug": "investimentos",  "descricao": "Renda fixa e variável"},
+    {"nome": "Economia",      "slug": "economia",       "descricao": "Indicadores econômicos"},
+    {"nome": "Criptomoedas",  "slug": "criptomoedas",   "descricao": "Bitcoin e altcoins"},
+    {"nome": "Finanças Pessoais", "slug": "financas-pessoais", "descricao": "Orçamento e dívidas"}
+  ],
+  "imobiliario": [
+    {"nome": "Compra e Venda","slug": "compra-venda",   "descricao": "Mercado imobiliário"},
+    {"nome": "Aluguel",       "slug": "aluguel",        "descricao": "Locação residencial e comercial"},
+    {"nome": "Decoração",     "slug": "decoracao",      "descricao": "Ideias e tendências"},
+    {"nome": "Construção",    "slug": "construcao",     "descricao": "Obras e reformas"}
+  ],
+  "tecnologia": [
+    {"nome": "Inteligência Artificial", "slug": "inteligencia-artificial", "descricao": "IA e machine learning"},
+    {"nome": "Smartphones",   "slug": "smartphones",    "descricao": "Lançamentos e reviews"},
+    {"nome": "Segurança Digital", "slug": "seguranca-digital", "descricao": "Privacidade e ataques"},
+    {"nome": "Startups",      "slug": "startups",       "descricao": "Inovação e empreendedorismo"}
+  ],
+  "automotivo": [
+    {"nome": "Lançamentos",   "slug": "lancamentos-automotivo", "descricao": "Novos modelos"},
+    {"nome": "Elétricos",     "slug": "eletricos",      "descricao": "Carros elétricos e híbridos"},
+    {"nome": "Motos",         "slug": "motos",          "descricao": "Motocicletas e scooters"},
+    {"nome": "Manutenção",    "slug": "manutencao-auto","descricao": "Dicas e revisões"}
+  ],
+  "saude": [
+    {"nome": "Bem-estar",     "slug": "bem-estar",      "descricao": "Saúde física e mental"},
+    {"nome": "Nutrição",      "slug": "nutricao",       "descricao": "Alimentação saudável"},
+    {"nome": "Exercícios",    "slug": "exercicios",     "descricao": "Treinos e atividades físicas"},
+    {"nome": "Medicina",      "slug": "medicina",       "descricao": "Saúde e doenças"}
+  ],
+  "economia": [
+    {"nome": "Brasil",        "slug": "economia-brasil","descricao": "Cenário econômico nacional"},
+    {"nome": "Internacional", "slug": "economia-internacional", "descricao": "Economia global"},
+    {"nome": "Emprego",       "slug": "emprego",        "descricao": "Mercado de trabalho"},
+    {"nome": "Inflação",      "slug": "inflacao",       "descricao": "Preços e poder de compra"}
+  ],
+  "esportes": [
+    {"nome": "Futebol",       "slug": "futebol",        "descricao": "Campeonatos e transferências"},
+    {"nome": "Fórmula 1",     "slug": "formula-1",      "descricao": "GPs e bastidores"},
+    {"nome": "Basquete",      "slug": "basquete",       "descricao": "NBA e NBB"},
+    {"nome": "Outros Esportes","slug": "outros-esportes","descricao": "Modalidades diversas"}
+  ],
+  "lifestyle": [
+    {"nome": "Viagens",       "slug": "viagens",        "descricao": "Destinos e dicas"},
+    {"nome": "Gastronomia",   "slug": "gastronomia",    "descricao": "Restaurantes e receitas"},
+    {"nome": "Moda",          "slug": "moda",           "descricao": "Tendências e estilo"},
+    {"nome": "Casa e Jardim", "slug": "casa-jardim",    "descricao": "Decoração e plantas"}
+  ]
+}
+```
+
+---
+
+## PÁGINAS OBRIGATÓRIAS (config/pages.json)
+
+Criar apenas se não existirem (verificar por slug via REST API antes de criar).
+
+```json
+[
+  {
+    "titulo": "Início",
+    "slug": "inicio",
+    "status": "publish",
+    "conteudo": "<p>Bem-vindo ao {portal_name}. Acompanhe as principais notícias sobre {niche}.</p>"
+  },
+  {
+    "titulo": "Sobre",
+    "slug": "sobre",
+    "status": "publish",
+    "conteudo": "<p>O {portal_name} é um portal de notícias dedicado a cobrir os principais acontecimentos sobre {niche}.</p>"
+  },
+  {
+    "titulo": "Quem Somos",
+    "slug": "quem-somos",
+    "status": "publish",
+    "conteudo": "<p>Conheça a equipe por trás do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Contato",
+    "slug": "contato",
+    "status": "publish",
+    "conteudo": "<p>Entre em contato com a redação do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Política de Privacidade",
+    "slug": "politica-de-privacidade",
+    "status": "publish",
+    "conteudo": "<p>Esta política de privacidade descreve como o {portal_name} coleta e utiliza informações.</p>"
+  },
+  {
+    "titulo": "Termos de Uso",
+    "slug": "termos-de-uso",
+    "status": "publish",
+    "conteudo": "<p>Ao acessar o {portal_name}, você concorda com estes termos de uso.</p>"
+  },
+  {
+    "titulo": "Política Editorial",
+    "slug": "politica-editorial",
+    "status": "publish",
+    "conteudo": "<p>Conheça os princípios editoriais que guiam o {portal_name}.</p>"
+  },
+  {
+    "titulo": "Expediente",
+    "slug": "expediente",
+    "status": "publish",
+    "conteudo": "<p>Expediente e informações legais do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Anuncie",
+    "slug": "anuncie",
+    "status": "publish",
+    "conteudo": "<p>Saiba como anunciar no {portal_name} e alcance nosso público.</p>"
+  },
+  {
+    "titulo": "Correções",
+    "slug": "correcoes",
+    "status": "publish",
+    "conteudo": "<p>Política de correções e transparência do {portal_name}.</p>"
+  },
+  {
+    "titulo": "Mapa do Site",
+    "slug": "mapa-do-site",
+    "status": "publish",
+    "conteudo": "<p>Navegue por todas as seções do {portal_name}.</p>"
+  }
+]
+```
+
+Os placeholders `{portal_name}` e `{niche}` devem ser substituídos em runtime antes de criar as páginas.
+
+---
+
+## CONTEÚDO INICIAL
+
+Criar via REST API:
+
+1. **Post de teste** (status: rascunho)
+   - Título: "Post de teste — {portal_name}"
+   - Conteúdo: "Este é um post de teste criado automaticamente pelo PEG Portal Engine."
+   - Categoria: primeira categoria do nicho
+
+2. **Todas as páginas** definidas em pages.json (com deduplicação)
+
+3. **Todas as categorias** do nicho selecionado (com deduplicação)
+
+---
+
+## SETUP COMPLETO (tasks.py)
+
+Executar em sequência, parando apenas em erros críticos (SSH e WP inválidos).
+Erros não críticos (ex: um plugin falhou) devem ser logados e o processo continua.
+
+```
+Etapa 1:  Testar conexão SSH
+Etapa 2:  Validar instalação WordPress (via WP-CLI)
+Etapa 3:  Validar WP-CLI (versão e funcionamento)
+Etapa 4:  Verificar disponibilidade do Redis (via SSH)
+Etapa 5:  Instalar e ativar plugins obrigatórios
+Etapa 6:  Instalar redis-cache (somente se Redis disponível)
+Etapa 7:  Configurar opções do WordPress (via WP-CLI)
+Etapa 8:  Configurar SEO técnico (permalink, indexação, homepage)
+Etapa 9:  Testar REST API
+Etapa 10: Criar categorias do nicho
+Etapa 11: Criar páginas institucionais
+Etapa 12: Criar conteúdo inicial (post rascunho)
+Etapa 13: Flush rewrite rules e cache
+Etapa 14: Gerar relatório final
+```
+
+Cada etapa deve retornar: `{"etapa": int, "nome": str, "status": "ok"|"erro"|"aviso", "detalhes": str}`
+
+---
+
+## LOGGER (logger.py)
+
+- Usar módulo `logging` padrão do Python
+- Nível configurável via `.env` (padrão: INFO)
+- Dois handlers: console (stdout) e arquivo (`logs/peg_{timestamp}.log`)
+- Formato: `[YYYY-MM-DD HH:MM:SS] [NIVEL] mensagem`
+- Nunca logar: senhas, application passwords, chaves privadas
+- Função helper: `log_credencial_segura(valor)` → retorna `"****"` sempre
+
+---
+
+## RELATÓRIO FINAL (utils.py)
+
+Gerar arquivo `logs/relatorio_{dominio}_{timestamp}.md` com:
+
+```markdown
+# Relatório PEG Portal Engine
+**Portal:** {portal_name}
+**Domínio:** {dominio}
+**Nicho:** {niche}
+**Data:** {data_hora}
+**Duração total:** {segundos}s
+
+## WordPress
+- Versão: {wp_version}
+- URL: {wp_url}
+- Permalink: {permalink}
+
+## Plugins Instalados e Ativos
+- [x] seo-by-rank-math
+- [x] fast-indexing-api
+...
+
+## Plugins com Falha
+- [ ] redis-cache — Motivo: Redis não disponível no servidor
+
+## Páginas Criadas
+- [x] Início (ID: 5)
+- [x] Sobre (ID: 6)
+...
+
+## Categorias Criadas
+- [x] Inteligência Artificial
+- [x] Smartphones
+...
+
+## SEO Aplicado
+- [x] Permalink configurado: /%postname%/
+- [x] Indexação ativa
+- [x] Homepage definida
+
+## ⚠️ Pendências de Configuração Manual
+1. **Rank Math SEO** — Completar wizard de configuração em: {wp_url}/wp-admin/admin.php?page=rank-math
+2. **WP Mail SMTP** — Configurar servidor de e-mail em: {wp_url}/wp-admin/admin.php?page=wp-mail-smtp
+3. **Site Kit by Google** — Conectar conta Google em: {wp_url}/wp-admin/admin.php?page=googlesitekit-splash
+
+## Erros Encontrados
+- {lista de erros com etapa e mensagem}
+
+## Próximos Passos
+1. Completar pendências listadas acima
+2. Configurar tema
+3. Criar usuário editor
+4. Configurar DNS e SSL se necessário
+5. Publicar primeiros artigos
+```
+
+---
+
+## niches.json
+
+```json
+{
+  "opcoes": [
+    "entretenimento",
+    "financas",
+    "imobiliario",
+    "tecnologia",
+    "automotivo",
+    "saude",
+    "economia",
+    "esportes",
+    "lifestyle"
+  ]
+}
+```
+
+---
+
+## README
+
+Incluir instruções:
+
+1. Pré-requisitos: Python 3.12+, WP-CLI instalado no VPS
+2. Criar virtualenv: `python -m venv venv`
+3. Ativar venv: `venv\Scripts\activate` (Windows) ou `source venv/bin/activate` (Linux/Mac)
+4. Instalar dependências: `pip install -r requirements.txt`
+5. Copiar `.env.example` para `.env` e preencher
+6. Rodar: `python app.py`
+7. Acessar: http://127.0.0.1:5000
+8. Nota sobre Application Password: gerar em WordPress → Usuários → Perfil → Senhas de aplicativo
+
+---
+
+## REQUIREMENTS.TXT
+
+```
+flask>=3.0.0
+paramiko>=3.4.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+```
+
+---
+
+## ENTREGA ESPERADA
+
+- Todos os arquivos listados na estrutura do projeto
+- Código completo, sem placeholders, sem funções vazias
+- Funcional para rodar localmente no Windows com VS Code
+- Modular: cada arquivo do `provisioner/` com responsabilidade única
+- Tratamento de erro em 100% das funções que fazem I/O (SSH, HTTP, arquivo)
+- Interface Bootstrap 5 funcional com log em tempo real via AJAX
+
+---
+
+## OBJETIVO FINAL
+
+Transformar qualquer WordPress recém-criado no CloudPanel em um portal editorial
+completo, com plugins essenciais, estrutura institucional, categorias organizadas
+por nicho, SEO técnico aplicado e relatório de pendências — tudo sem abrir o
+painel do WordPress manualmente.
