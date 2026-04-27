@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "slug": "achouimovel",
+    "version": "1.0.0",
+    "description": "Profile do portal Achou Imovel (mercado imobiliario)"
+  },
+  "portal": {
+    "name": "Achou Imovel",
+    "domain": "https://achouimovel.com.br",
+    "niche": "imobiliario",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo"
+  },
+  "wordpress": {
+    "url": "https://achouimovel.com.br",
+    "admin_user": "editor_achouimovel",
+    "application_password": "",
+    "wp_path": "/home/achouimovel/htdocs/achouimovel.com.br",
+    "wp_cli_path": "/usr/local/bin/wp"
+  },
+  "ssh": {
+    "host": "000.000.000.000",
+    "port": 22,
+    "user": "achouimovel",
+    "auth_method": "key",
+    "password": "",
+    "key_path": ""
+  },
+  "seo": {
+    "site_title": "Achou Imovel",
+    "tagline": "Tudo sobre o mercado imobiliario brasileiro",
+    "permalink_structure": "/%postname%/",
+    "blog_public": true,
+    "comments_enabled": false,
+    "ping_status": false,
+    "rank_math": true,
+    "instant_indexing": true
+  },
+  "plugins": {
+    "required": [
+      "seo-by-rank-math",
+      "instant-indexing",
+      "classic-editor"
+    ],
+    "optional": [
+      "redis-cache",
+      "site-kit-by-google"
+    ],
+    "skip": []
+  },
+  "content": {
+    "create_pages": true,
+    "create_categories": true,
+    "create_test_post": false,
+    "homepage_slug": "inicio"
+  },
+  "report": {
+    "generate_markdown": true,
+    "include_manual_pending_tasks": true
+  }
+}

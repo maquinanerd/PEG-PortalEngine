@@ -126,13 +126,19 @@ def acao_verificar_redis(cfg: dict) -> dict:
         ssh_client.fechar(client)
 
 
-def acao_instalar_plugins(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
+def acao_instalar_plugins(
+    cfg: dict,
+    opcionais_extras: Optional[list] = None,
+    pular_plugins: Optional[list] = None,
+) -> dict:
     """
     Instala todos os plugins obrigatorios + qualquer plugin opcional listado
     em opcionais_extras (lista de slugs).
+    Slugs em pular_plugins sao ignorados (mesmo se obrigatorios em plugins.json).
     Retorna detalhes por plugin.
     """
     opcionais_extras = opcionais_extras or []
+    pular_plugins = set(pular_plugins or [])
     try:
         plugins = carregar_plugins()
     except Exception as exc:
@@ -154,6 +160,10 @@ def acao_instalar_plugins(cfg: dict, opcionais_extras: Optional[list] = None) ->
         for p in plugins:
             slug = p.get("slug")
             if not slug:
+                continue
+
+            if slug in pular_plugins:
+                _logger.info("Plugin %s na lista de skip — pulando", slug)
                 continue
 
             obrigatorio = bool(p.get("obrigatorio"))
@@ -411,12 +421,28 @@ def _etapa(num: int, nome: str, status: str, detalhes: str) -> dict:
     return {"etapa": num, "nome": nome, "status": status, "detalhes": detalhes}
 
 
-def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
+def setup_completo(
+    cfg: dict,
+    opcionais_extras: Optional[list] = None,
+    pular_plugins: Optional[list] = None,
+    content_flags: Optional[dict] = None,
+    profile_meta: Optional[dict] = None,
+) -> dict:
     """
     Executa todas as etapas em sequencia. Erros nao criticos viram avisos
     no log. Erros criticos (SSH/WP invalidos) abortam o processo.
+
+    Quando 'profile_meta' e fornecido, dados do profile sao incluidos no
+    relatorio. content_flags pode conter create_pages/create_categories/
+    create_test_post (defaults True).
     """
     opcionais_extras = opcionais_extras or []
+    pular_plugins = pular_plugins or []
+    content_flags = content_flags or {}
+    create_pages = content_flags.get("create_pages", True)
+    create_categories = content_flags.get("create_categories", True)
+    create_test_post = content_flags.get("create_test_post", True)
+
     inicio = time.monotonic()
     iniciado_em = datetime.now()
     etapas: list[dict] = []
@@ -443,6 +469,17 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
         "pendencias_manuais": [],
         "erros": [],
     }
+    if profile_meta:
+        contexto_relatorio["profile"] = profile_meta
+        contexto_relatorio["profile_aplicado"] = {
+            "seo_aplicado": False,  # atualizado depois
+            "plugins_required": list(profile_meta.get("plugins_required") or []),
+            "plugins_optional": list(profile_meta.get("plugins_optional") or []),
+            "plugins_skip": list(pular_plugins),
+            "create_pages": create_pages,
+            "create_categories": create_categories,
+            "create_test_post": create_test_post,
+        }
 
     # ---------------- Etapa 1: SSH ----------------
     res_ssh = acao_testar_ssh(cfg)
@@ -485,7 +522,11 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
     _logger.info("[4/14] Redis: %s — %s", res_redis["status"], res_redis["message"])
 
     # ---------------- Etapa 5/6: Plugins ----------------
-    res_plugins = acao_instalar_plugins(cfg, opcionais_extras=opcionais_extras)
+    res_plugins = acao_instalar_plugins(
+        cfg,
+        opcionais_extras=opcionais_extras,
+        pular_plugins=pular_plugins,
+    )
     etapas.append(_etapa(5, "Instalar plugins", res_plugins["status"], res_plugins["message"]))
     _logger.info("[5-6/14] Plugins: %s — %s", res_plugins["status"], res_plugins["message"])
     detalhes_plugins = res_plugins.get("details") or {}
@@ -527,6 +568,8 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
     if res_cfg["status"] != "erro":
         contexto_relatorio["seo"]["permalink"] = True
         contexto_relatorio["seo"]["indexacao"] = True
+        if profile_meta and "profile_aplicado" in contexto_relatorio:
+            contexto_relatorio["profile_aplicado"]["seo_aplicado"] = True
     else:
         erros.append({"etapa": 7, "mensagem": res_cfg["message"]})
 
@@ -544,7 +587,10 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
         erros.append({"etapa": 9, "mensagem": res_rest["message"]})
 
     # ---------------- Etapa 10: categorias ----------------
-    if rest_ok:
+    if not create_categories:
+        etapas.append(_etapa(10, "Criar categorias", "aviso",
+                             "desativado pelo profile (content.create_categories=false)"))
+    elif rest_ok:
         res_cats = acao_criar_categorias(cfg)
         etapas.append(_etapa(10, "Criar categorias", res_cats["status"], res_cats["message"]))
         _logger.info("[10/14] Categorias: %s — %s", res_cats["status"], res_cats["message"])
@@ -558,7 +604,10 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
 
     # ---------------- Etapa 11: paginas ----------------
     paginas_criadas: list = []
-    if rest_ok:
+    if not create_pages:
+        etapas.append(_etapa(11, "Criar paginas", "aviso",
+                             "desativado pelo profile (content.create_pages=false)"))
+    elif rest_ok:
         res_pag = acao_criar_paginas(cfg)
         etapas.append(_etapa(11, "Criar paginas", res_pag["status"], res_pag["message"]))
         _logger.info("[11/14] Paginas: %s — %s", res_pag["status"], res_pag["message"])
@@ -592,7 +641,10 @@ def setup_completo(cfg: dict, opcionais_extras: Optional[list] = None) -> dict:
         etapas.append(_etapa(11, "Criar paginas", "aviso", "REST nao disponivel — pulado"))
 
     # ---------------- Etapa 12: conteudo inicial ----------------
-    if rest_ok:
+    if not create_test_post:
+        etapas.append(_etapa(12, "Criar conteudo inicial", "aviso",
+                             "desativado pelo profile (content.create_test_post=false)"))
+    elif rest_ok:
         res_post = acao_criar_conteudo_inicial(cfg)
         etapas.append(_etapa(12, "Criar conteudo inicial", res_post["status"],
                              res_post["message"]))

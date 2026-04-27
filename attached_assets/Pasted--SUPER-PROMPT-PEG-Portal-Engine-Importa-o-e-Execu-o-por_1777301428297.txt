@@ -1,0 +1,651 @@
+# SUPER PROMPT — PEG Portal Engine: Importação e Execução por JSON de Configuração
+
+## CONTEXTO DO PROJETO
+
+Você está trabalhando no projeto **PEG Portal Engine**, um sistema local em Python que automatiza a configuração inicial de um WordPress recém-instalado no CloudPanel.
+
+O sistema atual possui:
+
+* Painel web local em Flask + Bootstrap 5.
+* Execução local em `http://127.0.0.1:5000`.
+* Comunicação com o VPS via SSH + WP-CLI usando Paramiko.
+* Comunicação com WordPress via REST API usando Application Password.
+* Configurações estáticas em JSON dentro da pasta `config/`.
+* Arquivos atuais importantes:
+
+  * `app.py`
+  * `provisioner/tasks.py`
+  * `provisioner/utils.py`
+  * `provisioner/wpcli.py`
+  * `provisioner/wp_rest.py`
+  * `provisioner/ssh_client.py`
+  * `templates/index.html`
+  * `static/app.js`
+  * `config/plugins.json`
+  * `config/categories.json`
+  * `config/pages.json`
+  * `config/niches.json`
+  * `README.md`
+  * `DOCUMENTACAO.md`
+
+O sistema já funciona no modo manual: o usuário preenche os dados no painel e executa validações, provisionamento granular ou setup completo.
+
+Agora quero evoluir o sistema para permitir que eu importe um **JSON completo de configuração por portal**, sem remover o modo manual.
+
+---
+
+## OBJETIVO PRINCIPAL
+
+Implementar no PEG Portal Engine o suporte a **Site Profiles JSON**.
+
+Um Site Profile é um arquivo JSON único por portal, contendo todas as configurações necessárias para transformar um WordPress recém-instalado em portal editorial.
+
+Exemplo de uso desejado:
+
+1. Eu crio um arquivo em `config/sites/aeconomia.json`.
+2. Abro o painel do PEG Portal Engine.
+3. Seleciono esse profile no painel.
+4. O sistema carrega os dados do JSON.
+5. O painel preenche automaticamente os campos.
+6. Eu posso rodar:
+
+   * validações individuais;
+   * provisionamento granular;
+   * setup completo a partir do profile.
+7. O relatório final informa claramente qual profile foi usado.
+
+O modo manual atual deve continuar funcionando exatamente como antes.
+
+---
+
+## PRINCÍPIO DE IMPLEMENTAÇÃO
+
+Não reescreva o sistema do zero.
+
+Faça uma evolução incremental, limpa e segura.
+
+Preserve:
+
+* arquitetura atual;
+* endpoints existentes;
+* fluxo manual;
+* estrutura visual principal do painel;
+* lógica atual de SSH, WP-CLI e REST API;
+* geração de relatório Markdown;
+* tratamento de erros estruturado.
+
+Adicione apenas o necessário para suportar perfis JSON por portal.
+
+---
+
+## NOVA ESTRUTURA NECESSÁRIA
+
+Criar a pasta:
+
+```txt
+config/sites/
+```
+
+Criar pelo menos estes arquivos:
+
+```txt
+config/sites/example.json
+config/sites/aeconomia.json
+config/sites/thenerd.json
+config/sites/achouimovel.json
+```
+
+Os três últimos podem ser exemplos editáveis, sem credenciais reais.
+
+Nunca coloque senha real, Application Password real ou chave privada real nos exemplos.
+
+---
+
+## SCHEMA DO SITE PROFILE JSON
+
+O arquivo JSON deve seguir esta estrutura base:
+
+```json
+{
+  "profile": {
+    "slug": "aeconomia",
+    "version": "1.0.0",
+    "description": "Profile de configuração do portal A Economia"
+  },
+  "portal": {
+    "name": "A Economia",
+    "domain": "https://aeconomia.online",
+    "niche": "financas",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo"
+  },
+  "wordpress": {
+    "url": "https://aeconomia.online",
+    "admin_user": "usuario_wp",
+    "application_password": "",
+    "wp_path": "/home/site/htdocs/aeconomia.online",
+    "wp_cli_path": "/usr/local/bin/wp"
+  },
+  "ssh": {
+    "host": "000.000.000.000",
+    "port": 22,
+    "user": "usuario_ssh",
+    "auth_method": "password",
+    "password": "",
+    "key_path": ""
+  },
+  "seo": {
+    "site_title": "A Economia",
+    "tagline": "Notícias sobre economia, finanças e mercado",
+    "permalink_structure": "/%postname%/",
+    "blog_public": true,
+    "comments_enabled": false,
+    "ping_status": false,
+    "rank_math": true,
+    "instant_indexing": true
+  },
+  "plugins": {
+    "required": [
+      "seo-by-rank-math",
+      "instant-indexing",
+      "classic-editor"
+    ],
+    "optional": [
+      "redis-cache",
+      "site-kit-by-google"
+    ],
+    "skip": []
+  },
+  "content": {
+    "create_pages": true,
+    "create_categories": true,
+    "create_test_post": true,
+    "homepage_slug": "inicio"
+  },
+  "report": {
+    "generate_markdown": true,
+    "include_manual_pending_tasks": true
+  }
+}
+```
+
+---
+
+## REGRAS DO SCHEMA
+
+### Campos obrigatórios
+
+Validar como obrigatórios:
+
+* `profile.slug`
+* `portal.name`
+* `portal.domain`
+* `portal.niche`
+* `wordpress.url`
+* `wordpress.admin_user`
+* `wordpress.wp_path`
+* `wordpress.wp_cli_path`
+* `ssh.host`
+* `ssh.port`
+* `ssh.user`
+* `ssh.auth_method`
+* `seo.site_title`
+* `seo.permalink_structure`
+
+### Credenciais
+
+Os campos abaixo podem estar vazios no JSON, porque o usuário poderá preencher pelo painel ou `.env`:
+
+* `wordpress.application_password`
+* `ssh.password`
+* `ssh.key_path`
+
+Mas o sistema deve validar que, no momento da execução, existe credencial suficiente para:
+
+* autenticar no SSH;
+* autenticar na REST API, quando tarefas REST forem executadas.
+
+### SSH auth_method
+
+Aceitar apenas:
+
+* `password`
+* `key`
+
+Se `auth_method` for `password`, exigir senha no profile, formulário ou `.env`.
+
+Se `auth_method` for `key`, exigir `key_path` no profile, formulário ou `.env`.
+
+### Tipos
+
+Validar tipos básicos:
+
+* `ssh.port` deve ser número inteiro.
+* flags em `seo`, `content` e `report` devem ser booleanas.
+* listas de plugins devem ser arrays.
+* URLs devem começar com `http://` ou `https://`.
+
+### Nicho
+
+Validar se `portal.niche` existe em `config/niches.json`.
+
+Se não existir, retornar erro amigável informando os nichos disponíveis.
+
+---
+
+## FUNÇÕES A CRIAR OU ALTERAR
+
+### 1. Em `provisioner/utils.py`
+
+Criar:
+
+```python
+def list_site_profiles() -> list[dict]:
+    """
+    Lista todos os arquivos JSON disponíveis em config/sites/.
+    Retorna metadados seguros: slug, name, domain, niche, path relativo.
+    Nunca retorna credenciais.
+    """
+```
+
+Criar:
+
+```python
+def load_site_profile(slug_or_path: str) -> dict:
+    """
+    Carrega um profile JSON por slug ou caminho.
+    Deve aceitar:
+    - 'aeconomia'
+    - 'config/sites/aeconomia.json'
+    Retorna dict completo.
+    """
+```
+
+Criar:
+
+```python
+def validate_site_profile(profile: dict) -> tuple[bool, list[str]]:
+    """
+    Valida estrutura, campos obrigatórios e tipos básicos.
+    Retorna:
+    - True/False
+    - lista de erros amigáveis
+    """
+```
+
+Criar:
+
+```python
+def sanitize_site_profile(profile: dict) -> dict:
+    """
+    Retorna uma versão segura do profile para exibir/logar.
+    Deve mascarar:
+    - wordpress.application_password
+    - ssh.password
+    - ssh.key_path
+    """
+```
+
+Criar:
+
+```python
+def merge_profile_with_payload(profile: dict, payload: dict) -> dict:
+    """
+    Mescla os dados do JSON com dados vindos do formulário.
+    Regra:
+    - valores preenchidos manualmente no painel têm prioridade sobre valores vazios do JSON;
+    - credenciais do formulário podem complementar credenciais vazias do JSON;
+    - não sobrescrever valores válidos do profile com strings vazias.
+    """
+```
+
+---
+
+### 2. Em `app.py`
+
+Adicionar endpoint:
+
+```txt
+GET /api/site-profiles
+```
+
+Função:
+
+* listar profiles disponíveis em `config/sites/`;
+* retornar JSON seguro;
+* nunca retornar credenciais.
+
+Resposta esperada:
+
+```json
+{
+  "status": "ok",
+  "profiles": [
+    {
+      "slug": "aeconomia",
+      "name": "A Economia",
+      "domain": "https://aeconomia.online",
+      "niche": "financas"
+    }
+  ]
+}
+```
+
+Adicionar endpoint:
+
+```txt
+POST /api/load-site-profile
+```
+
+Payload:
+
+```json
+{
+  "slug": "aeconomia"
+}
+```
+
+Função:
+
+* carregar o profile;
+* validar;
+* retornar profile sanitizado para preencher o painel;
+* incluir erros se houver.
+
+Adicionar endpoint:
+
+```txt
+POST /api/setup-from-profile
+```
+
+Payload:
+
+```json
+{
+  "slug": "aeconomia",
+  "overrides": {
+    "wordpress": {
+      "application_password": "..."
+    },
+    "ssh": {
+      "password": "..."
+    }
+  }
+}
+```
+
+Função:
+
+* carregar profile;
+* mesclar overrides do painel;
+* validar novamente;
+* chamar o orquestrador de setup completo;
+* gerar relatório;
+* retornar resposta estruturada.
+
+Importante:
+
+* Não remover endpoints antigos.
+* Não alterar comportamento de endpoints antigos.
+* Qualquer erro deve retornar JSON estruturado, nunca traceback cru.
+
+---
+
+### 3. Em `provisioner/tasks.py`
+
+Adaptar o orquestrador para aceitar um `payload` vindo de profile.
+
+Se já existir uma função como `setup_completo(payload)` ou similar, manter assinatura se possível.
+
+Adicionar suporte opcional aos seguintes campos:
+
+* `profile.slug`
+* `portal.name`
+* `portal.domain`
+* `portal.niche`
+* `seo.site_title`
+* `seo.tagline`
+* `seo.permalink_structure`
+* `seo.blog_public`
+* `seo.comments_enabled`
+* `seo.ping_status`
+* `plugins.required`
+* `plugins.optional`
+* `content.create_pages`
+* `content.create_categories`
+* `content.create_test_post`
+* `content.homepage_slug`
+
+Não duplicar lógica.
+
+Criar helpers se necessário, mas não fazer refatoração ampla.
+
+---
+
+### 4. Em `templates/index.html`
+
+Adicionar uma nova seção no painel, sem destruir a interface atual:
+
+Título sugerido:
+
+```txt
+Profile JSON do Portal
+```
+
+Elementos necessários:
+
+* Select para escolher profiles disponíveis.
+* Botão: `Carregar profile`.
+* Botão: `Rodar setup pelo profile`.
+* Área pequena para mostrar:
+
+  * nome do portal;
+  * domínio;
+  * nicho;
+  * status da validação.
+
+O usuário deve conseguir:
+
+* carregar um profile e preencher automaticamente os campos do formulário;
+* complementar senha SSH e Application Password manualmente;
+* executar setup pelo profile.
+
+Não mudar radicalmente o visual.
+
+---
+
+### 5. Em `static/app.js`
+
+Adicionar lógica para:
+
+* buscar profiles em `/api/site-profiles` ao carregar a página;
+* preencher o select;
+* chamar `/api/load-site-profile` ao clicar em “Carregar profile”;
+* preencher os campos do formulário com os dados do profile;
+* não preencher campos sensíveis se vierem mascarados;
+* chamar `/api/setup-from-profile` ao clicar em “Rodar setup pelo profile”;
+* enviar overrides com credenciais preenchidas manualmente no painel.
+
+Regras importantes:
+
+* Não quebrar os botões atuais.
+* Não duplicar funções AJAX se já houver helper existente.
+* Usar o mesmo padrão visual de logs já existente.
+
+---
+
+## REGRAS DE SEGURANÇA
+
+Nunca logar:
+
+* senha SSH;
+* Application Password;
+* conteúdo de chave privada;
+* caminho completo de chave privada, se considerado sensível;
+* headers Authorization.
+
+Em qualquer retorno para frontend:
+
+* `wordpress.application_password` deve aparecer como `****` ou vazio;
+* `ssh.password` deve aparecer como `****` ou vazio;
+* `ssh.key_path` pode aparecer como `****`, não como caminho completo.
+
+Nos arquivos `example.json`, `aeconomia.json`, `thenerd.json`, `achouimovel.json`, nunca usar credenciais reais.
+
+---
+
+## REGRAS DE COMPATIBILIDADE
+
+O sistema deve continuar funcionando nestes modos:
+
+1. Setup manual atual.
+2. Validações manuais atuais.
+3. Provisionamento granular atual.
+4. Novo modo: carregar profile e preencher formulário.
+5. Novo modo: rodar setup completo direto pelo profile.
+
+Não remova nenhum fluxo existente.
+
+---
+
+## RELATÓRIO MARKDOWN
+
+Atualizar a geração do relatório final para incluir, quando houver profile:
+
+```md
+## Profile utilizado
+
+- Slug: aeconomia
+- Nome: A Economia
+- Domínio: https://aeconomia.online
+- Nicho: financas
+- Versão do profile: 1.0.0
+```
+
+Também incluir:
+
+```md
+## Configurações aplicadas via profile
+
+- SEO técnico: aplicado/não aplicado
+- Plugins obrigatórios: lista
+- Plugins opcionais: lista
+- Páginas institucionais: criadas/puladas
+- Categorias do nicho: criadas/puladas
+- Post de teste: criado/pulado
+```
+
+Se algum campo obrigatório estiver ausente, o relatório não precisa ser gerado; o erro deve aparecer antes da execução.
+
+---
+
+## DOCUMENTAÇÃO
+
+Atualizar `README.md` com uma seção:
+
+```md
+## Usando Site Profiles JSON
+```
+
+Explicar:
+
+* onde criar profiles;
+* como duplicar `example.json`;
+* quais campos editar;
+* quais credenciais podem ficar fora do JSON;
+* como carregar no painel;
+* como rodar setup pelo profile.
+
+Atualizar `DOCUMENTACAO.md` com:
+
+* conceito de Site Profile;
+* schema completo;
+* endpoints novos;
+* regras de segurança;
+* fluxo operacional.
+
+---
+
+## TESTES MANUAIS OBRIGATÓRIOS
+
+Depois de implementar, validar pelo menos:
+
+### Teste 1 — Listagem
+
+* Rodar o Flask.
+* Abrir painel.
+* Confirmar que profiles aparecem no select.
+
+### Teste 2 — Carregamento
+
+* Selecionar `example`.
+* Clicar em carregar.
+* Verificar se campos não sensíveis foram preenchidos.
+* Verificar se credenciais não aparecem expostas.
+
+### Teste 3 — Validação de erro
+
+* Criar um JSON sem `portal.name`.
+* Tentar carregar.
+* Confirmar erro amigável.
+
+### Teste 4 — Nicho inválido
+
+* Usar `portal.niche` inexistente.
+* Confirmar erro com lista de nichos disponíveis.
+
+### Teste 5 — Setup manual
+
+* Rodar setup manual antigo.
+* Confirmar que nada quebrou.
+
+### Teste 6 — Setup via profile
+
+* Carregar profile válido.
+* Preencher credenciais no painel.
+* Rodar setup pelo profile.
+* Confirmar relatório com seção “Profile utilizado”.
+
+---
+
+## CRITÉRIOS DE ACEITE
+
+A implementação só estará correta se:
+
+* existir `config/sites/`;
+* existir `config/sites/example.json`;
+* o painel listar profiles;
+* o painel carregar profile sem expor credenciais;
+* o usuário conseguir complementar credenciais pelo formulário;
+* o setup manual continuar funcionando;
+* o setup via profile funcionar;
+* erros de JSON forem amigáveis;
+* nichos forem validados contra `config/niches.json`;
+* o relatório final informar o profile usado;
+* README e DOCUMENTACAO forem atualizados;
+* nenhum segredo aparecer em log, frontend ou relatório.
+
+---
+
+## ENTREGA FINAL ESPERADA
+
+Ao finalizar, me entregue:
+
+1. Resumo do que foi alterado.
+2. Lista de arquivos modificados/criados.
+3. Explicação curta dos novos endpoints.
+4. Exemplo do `example.json` criado.
+5. Instruções para testar localmente.
+6. Pontos que ainda precisam de configuração manual.
+
+Não entregue resposta genérica. Faça a alteração real no código do projeto.
+
+---
+
+## OBSERVAÇÃO FINAL
+
+Este recurso é estratégico porque o PEG Portal Engine será usado para configurar múltiplos portais WordPress de forma padronizada.
+
+A meta não é apenas importar JSON.
+
+A meta é transformar o sistema em uma máquina de provisionamento por perfil, onde cada portal novo tenha um arquivo declarativo de configuração, reutilizável, versionável e seguro.

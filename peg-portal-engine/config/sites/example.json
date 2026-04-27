@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "slug": "example",
+    "version": "1.0.0",
+    "description": "Profile de exemplo — duplique este arquivo para criar profiles reais."
+  },
+  "portal": {
+    "name": "Meu Portal Exemplo",
+    "domain": "https://exemplo.com.br",
+    "niche": "tecnologia",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo"
+  },
+  "wordpress": {
+    "url": "https://exemplo.com.br",
+    "admin_user": "admin_exemplo",
+    "application_password": "",
+    "wp_path": "/home/site/htdocs/exemplo.com.br",
+    "wp_cli_path": "/usr/local/bin/wp"
+  },
+  "ssh": {
+    "host": "000.000.000.000",
+    "port": 22,
+    "user": "site-exemplo",
+    "auth_method": "password",
+    "password": "",
+    "key_path": ""
+  },
+  "seo": {
+    "site_title": "Meu Portal Exemplo",
+    "tagline": "Portal de noticias sobre tecnologia",
+    "permalink_structure": "/%postname%/",
+    "blog_public": true,
+    "comments_enabled": false,
+    "ping_status": false,
+    "rank_math": true,
+    "instant_indexing": true
+  },
+  "plugins": {
+    "required": [
+      "seo-by-rank-math",
+      "instant-indexing",
+      "classic-editor"
+    ],
+    "optional": [
+      "redis-cache",
+      "site-kit-by-google"
+    ],
+    "skip": []
+  },
+  "content": {
+    "create_pages": true,
+    "create_categories": true,
+    "create_test_post": true,
+    "homepage_slug": "inicio"
+  },
+  "report": {
+    "generate_markdown": true,
+    "include_manual_pending_tasks": true
+  }
+}

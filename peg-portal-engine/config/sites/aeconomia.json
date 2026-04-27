@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "slug": "aeconomia",
+    "version": "1.0.0",
+    "description": "Profile de configuracao do portal A Economia"
+  },
+  "portal": {
+    "name": "A Economia",
+    "domain": "https://aeconomia.online",
+    "niche": "financas",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo"
+  },
+  "wordpress": {
+    "url": "https://aeconomia.online",
+    "admin_user": "editor_aeconomia",
+    "application_password": "",
+    "wp_path": "/home/aeconomia/htdocs/aeconomia.online",
+    "wp_cli_path": "/usr/local/bin/wp"
+  },
+  "ssh": {
+    "host": "000.000.000.000",
+    "port": 22,
+    "user": "aeconomia",
+    "auth_method": "password",
+    "password": "",
+    "key_path": ""
+  },
+  "seo": {
+    "site_title": "A Economia",
+    "tagline": "Noticias sobre economia, financas e mercado",
+    "permalink_structure": "/%postname%/",
+    "blog_public": true,
+    "comments_enabled": false,
+    "ping_status": false,
+    "rank_math": true,
+    "instant_indexing": true
+  },
+  "plugins": {
+    "required": [
+      "seo-by-rank-math",
+      "instant-indexing",
+      "classic-editor"
+    ],
+    "optional": [
+      "redis-cache",
+      "site-kit-by-google"
+    ],
+    "skip": []
+  },
+  "content": {
+    "create_pages": true,
+    "create_categories": true,
+    "create_test_post": true,
+    "homepage_slug": "inicio"
+  },
+  "report": {
+    "generate_markdown": true,
+    "include_manual_pending_tasks": true
+  }
+}

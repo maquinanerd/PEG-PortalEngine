@@ -22,6 +22,34 @@
 
     <!-- ===================== Form ===================== -->
     <div class="col-lg-5">
+
+      <!-- Profile JSON do Portal -->
+      <div class="card shadow-sm mb-3" id="card-profile">
+        <div class="card-header bg-white">
+          <strong>Profile JSON do Portal</strong>
+          <span class="text-muted small ms-2">config/sites/*.json</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-7">
+              <label class="form-label small mb-1">Profile disponivel</label>
+              <select class="form-select form-select-sm" id="select-profile">
+                <option value="">— escolha um profile —</option>
+              </select>
+            </div>
+            <div class="col-5 d-flex gap-1">
+              <button type="button" class="btn btn-outline-secondary btn-sm flex-fill"
+                      id="btn-carregar-profile">Carregar</button>
+              <button type="button" class="btn btn-success btn-sm flex-fill"
+                      id="btn-setup-profile">Rodar setup</button>
+            </div>
+          </div>
+          <div id="profile-info" class="small mt-2 text-muted">
+            Nenhum profile carregado.
+          </div>
+        </div>
+      </div>
+
       <div class="card shadow-sm">
         <div class="card-header bg-white">
           <strong>Configuracao</strong>

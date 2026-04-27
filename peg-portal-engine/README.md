@@ -79,6 +79,70 @@ institucionais, categorias por nicho, SEO tecnico e relatorio de pendencias).
 
 ---
 
+## Usando Site Profiles JSON
+
+Para evitar repreencher o formulario a cada portal, voce pode criar um
+**Site Profile** por portal — um arquivo JSON declarativo dentro de
+`config/sites/`.
+
+### Onde criar
+
+```
+config/sites/
+├── example.json       # template (duplique este)
+├── aeconomia.json
+├── thenerd.json
+└── achouimovel.json
+```
+
+### Como criar um profile novo
+
+1. Duplique `config/sites/example.json` com o nome do seu portal:
+   ```bat
+   copy config\sites\example.json config\sites\meusite.json
+   ```
+2. Edite os campos:
+   - `profile.slug`, `profile.description`
+   - `portal.name`, `portal.domain`, `portal.niche`
+   - `wordpress.url`, `wordpress.admin_user`, `wordpress.wp_path`
+   - `ssh.host`, `ssh.port`, `ssh.user`, `ssh.auth_method`
+   - `seo.site_title`, `seo.tagline`
+   - `plugins.required`, `plugins.optional`, `plugins.skip`
+   - `content.create_pages`, `content.create_categories`,
+     `content.create_test_post`
+
+### Quais credenciais ficam fora do JSON
+
+Por seguranca, deixe estes campos **vazios** no profile:
+
+- `wordpress.application_password`
+- `ssh.password`
+- `ssh.key_path`
+
+Voce preenche esses campos no painel a cada execucao. Eles ficam apenas
+em memoria — nunca sao gravados no disco nem enviados de volta para o
+frontend (sao mascarados como `****` em qualquer resposta).
+
+### Como carregar e rodar pelo painel
+
+1. Rode `python app.py` e abra <http://127.0.0.1:5000>.
+2. No card **Profile JSON do Portal** (topo da coluna esquerda):
+   - escolha o profile no select;
+   - clique em **Carregar** — todos os campos do formulario sao preenchidos
+     automaticamente, exceto as senhas;
+   - preencha **SSH password** (ou `key_path`) e **Application Password**;
+   - clique em **Rodar setup** para executar as 14 etapas direto pelo profile.
+3. O relatorio final inclui uma secao "Profile utilizado" com slug,
+   versao e configuracoes aplicadas.
+
+### Modo manual continua funcionando
+
+Os botoes antigos (Testar SSH, Validar WP, Setup completo, etc.) continuam
+exatamente como antes. O suporte a profile e **adicional**, nao substitui
+o modo manual.
+
+---
+
 ## Estrutura do projeto
 
 ```
@@ -87,11 +151,17 @@ peg-portal-engine/
 ├── requirements.txt
 ├── .env.example
 ├── README.md
+├── DOCUMENTACAO.md
 ├── config/
 │   ├── plugins.json
 │   ├── categories.json       # categorias por nicho
 │   ├── pages.json            # paginas institucionais
-│   └── niches.json
+│   ├── niches.json
+│   └── sites/                # profiles por portal (JSON)
+│       ├── example.json
+│       ├── aeconomia.json
+│       ├── thenerd.json
+│       └── achouimovel.json
 ├── provisioner/
 │   ├── ssh_client.py         # paramiko (senha ou chave)
 │   ├── wpcli.py              # WP-CLI via SSH
