@@ -301,11 +301,60 @@ Toda resposta segue o mesmo formato:
 
 ```json
 {
-  "status": "ok | aviso | erro",
+  "status": "ok | aviso | erro | exists",
   "message": "texto curto para o usuário",
   "details": { ... ou lista, ou null ... }
 }
 ```
+
+#### Endpoints do dashboard de profiles
+
+| Método | Rota                          | Função                                     |
+|--------|-------------------------------|--------------------------------------------|
+| GET    | `/api/site-profiles`          | lista profiles existentes                  |
+| POST   | `/api/load-site-profile`      | lê um profile pelo `slug`                  |
+| POST   | `/api/validate-site-profile`  | valida payload (achatado ou aninhado)      |
+| POST   | `/api/save-site-profile`      | persiste profile (HTTP 409 se já existir)  |
+| POST   | `/api/delete-site-profile`    | remove profile (`example` é protegido)     |
+| POST   | `/api/setup-from-profile`     | roda setup pelo profile + `steps` (flags)  |
+
+`save-site-profile` aceita `{ overwrite: true|false }`. Quando o arquivo já
+existe e `overwrite=false`, retorna `status="exists"` + HTTP 409 e
+`details.overwrite_required=true`. O painel pergunta antes de sobrescrever.
+
+`setup-from-profile` aceita um campo `steps` (dict) com as 7 flags abaixo
+para gatear etapas em runtime sem editar o JSON:
+
+```json
+{
+  "slug": "meusite",
+  "overrides": { "wordpress": { "application_password": "..." } },
+  "steps": {
+    "install_plugins":   true,
+    "configure_wp":      true,
+    "apply_seo":         true,
+    "create_pages":      true,
+    "create_categories": true,
+    "create_test_post":  true,
+    "generate_report":   true
+  }
+}
+```
+
+Etapas desligadas viram avisos e aparecem na seção **"Etapas puladas"**
+do relatório Markdown. Etapas executadas aparecem em
+**"Etapas executadas"**.
+
+#### Sensíveis nunca persistidos
+
+`save_site_profile` zera, antes de gravar:
+
+- `wordpress.application_password`
+- `ssh.password`
+- `ssh.key_path`
+
+Esses três campos vivem apenas em memória (formulário, `.env`) e podem
+ser injetados em runtime via `overrides` do `setup-from-profile`.
 
 ---
 

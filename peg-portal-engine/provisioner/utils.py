@@ -402,6 +402,297 @@ def extrair_profile_meta(profile: dict) -> dict:
 
 
 # ---------------------------------------------------------------------- #
+# Construcao / persistencia de profiles
+# ---------------------------------------------------------------------- #
+PROFILES_PROTEGIDOS = {"example"}
+
+
+def _to_bool(v: Any, default: bool = False) -> bool:
+    if isinstance(v, bool):
+        return v
+    if v is None:
+        return default
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("1", "true", "yes", "on", "sim"):
+            return True
+        if s in ("0", "false", "no", "off", "nao", "não", ""):
+            return False
+    return default
+
+
+def _to_int(v: Any, default: int) -> int:
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def _split_lista(v: Any) -> list[str]:
+    """Converte string (linhas/virgulas) ou lista em lista de slugs limpos."""
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return [str(x).strip() for x in v if str(x).strip()]
+    if isinstance(v, str):
+        partes: list[str] = []
+        for chunk in v.replace(",", "\n").splitlines():
+            s = chunk.strip()
+            if s:
+                partes.append(s)
+        return partes
+    return []
+
+
+def _slug_seguro(s: str) -> str:
+    """Sanitiza slug: minusculas, sem barras, sem espacos."""
+    if not isinstance(s, str):
+        return ""
+    out = s.strip().lower()
+    out = out.replace("/", "_").replace("\\", "_")
+    out = "".join(c if (c.isalnum() or c in ("-", "_")) else "-" for c in out)
+    while "--" in out:
+        out = out.replace("--", "-")
+    return out.strip("-_") or ""
+
+
+def build_profile_from_payload(payload: dict) -> dict:
+    """
+    Monta um profile JSON no schema oficial a partir do payload achatado
+    enviado pelo dashboard. Aceita tanto chaves achatadas
+    (profile_slug, portal_name, seo_blog_public, ...) quanto chaves
+    aninhadas (profile, portal, seo, ...).
+
+    Nao valida — use validate_site_profile na sequencia.
+    Sensiveis (application_password, ssh.password, ssh.key_path) sao
+    preservados aqui; e save_site_profile que zera antes de gravar.
+    """
+    if not isinstance(payload, dict):
+        payload = {}
+
+    g = lambda k, default="": (
+        payload[k] if k in payload and payload[k] is not None else default
+    )
+
+    # Permite payload aninhado vindo direto (ex.: ja em formato profile).
+    if isinstance(payload.get("profile"), dict) and isinstance(
+        payload.get("portal"), dict
+    ):
+        # Retorna copia profunda; consumidor pode complementar depois.
+        return copy.deepcopy(payload)
+
+    profile = {
+        "profile": {
+            "slug": _slug_seguro(str(g("profile_slug") or g("slug"))),
+            "version": str(g("profile_version", "1.0.0")).strip() or "1.0.0",
+            "description": str(g("profile_description", "")).strip(),
+        },
+        "portal": {
+            "name":     str(g("portal_name", "")).strip(),
+            "domain":   str(g("portal_domain", "")).strip(),
+            "niche":    str(g("portal_niche", "")).strip(),
+            "language": str(g("portal_language", "pt-BR")).strip() or "pt-BR",
+            "timezone": str(g("portal_timezone", "America/Sao_Paulo")).strip()
+                        or "America/Sao_Paulo",
+        },
+        "wordpress": {
+            "url":        str(g("wp_url", "")).strip().rstrip("/"),
+            "admin_user": str(g("wp_user", "")).strip(),
+            "application_password": str(g("wp_app_password", "")),
+            "wp_path":    str(g("wp_path", "")).strip(),
+            "wp_cli_path": str(g("wpcli_bin", "/usr/local/bin/wp")).strip()
+                          or "/usr/local/bin/wp",
+        },
+        "ssh": {
+            "host":        str(g("ssh_host", "")).strip(),
+            "port":        _to_int(g("ssh_port", 22), 22),
+            "user":        str(g("ssh_user", "")).strip(),
+            "auth_method": (str(g("ssh_auth_method", "password")).strip().lower()
+                            or "password"),
+            "password":    str(g("ssh_password", "")),
+            "key_path":    str(g("ssh_key_path", "")).strip(),
+        },
+        "seo": {
+            "site_title":          str(g("seo_site_title", "")).strip(),
+            "tagline":             str(g("seo_tagline", "")).strip(),
+            "permalink_structure": str(g("seo_permalink_structure",
+                                         "/%postname%/")).strip()
+                                   or "/%postname%/",
+            "blog_public":         _to_bool(g("seo_blog_public", True), True),
+            "comments_enabled":    _to_bool(g("seo_comments_enabled", False),
+                                            False),
+            "ping_status":         _to_bool(g("seo_ping_status", False), False),
+            "rank_math":           _to_bool(g("seo_rank_math", True), True),
+            "instant_indexing":    _to_bool(g("seo_instant_indexing", True),
+                                            True),
+        },
+        "plugins": {
+            "required": _split_lista(g("plugins_required", [])),
+            "optional": _split_lista(g("plugins_optional", [])),
+            "skip":     _split_lista(g("plugins_skip", [])),
+        },
+        "content": {
+            "create_pages":      _to_bool(g("content_create_pages", True), True),
+            "create_categories": _to_bool(g("content_create_categories", True),
+                                          True),
+            "create_test_post":  _to_bool(g("content_create_test_post", True),
+                                          True),
+            "homepage_slug":     str(g("content_homepage_slug", "inicio")).strip()
+                                 or "inicio",
+        },
+        "report": {
+            "generate_markdown": _to_bool(g("report_generate_markdown", True),
+                                          True),
+            "include_manual_pending_tasks": _to_bool(
+                g("report_include_manual_pending_tasks", True), True
+            ),
+        },
+    }
+
+    # Default seo.site_title = portal.name se vazio
+    if not profile["seo"]["site_title"]:
+        profile["seo"]["site_title"] = profile["portal"]["name"]
+
+    return profile
+
+
+def save_site_profile(
+    profile: dict,
+    *,
+    overwrite: bool = False,
+) -> dict:
+    """
+    Persiste um profile em config/sites/<slug>.json.
+
+    Regras:
+    - Valida estrutura antes de gravar (validate_site_profile).
+    - Zera credenciais sensiveis (NUNCA grava senha real em disco).
+    - Slug e obrigatorio e deve ser seguro para nome de arquivo.
+    - Se o arquivo ja existir e overwrite=False, retorna 'exists' sem gravar.
+    - Indent 2, ensure_ascii=False.
+
+    Retorna dict:
+      {"status": "ok"|"exists"|"erro", "message": str,
+       "path": str|None, "slug": str|None, "errors": [str]}
+    """
+    if not isinstance(profile, dict):
+        return {"status": "erro", "message": "Profile invalido (nao e objeto).",
+                "path": None, "slug": None, "errors": []}
+
+    # Validar primeiro
+    valido, erros = validate_site_profile(profile)
+    if not valido:
+        return {
+            "status": "erro",
+            "message": "Profile invalido: " + "; ".join(erros),
+            "path": None,
+            "slug": None,
+            "errors": erros,
+        }
+
+    slug_bruto = ((profile.get("profile") or {}).get("slug") or "").strip()
+    slug = _slug_seguro(slug_bruto)
+    if not slug:
+        return {
+            "status": "erro",
+            "message": "profile.slug ausente ou invalido.",
+            "path": None, "slug": None, "errors": ["profile.slug invalido"],
+        }
+
+    # Copia segura: zera credenciais antes de gravar
+    seguro = copy.deepcopy(profile)
+    wp = seguro.setdefault("wordpress", {})
+    ssh = seguro.setdefault("ssh", {})
+    if not isinstance(wp, dict):
+        wp = {}
+        seguro["wordpress"] = wp
+    if not isinstance(ssh, dict):
+        ssh = {}
+        seguro["ssh"] = ssh
+    wp["application_password"] = ""
+    ssh["password"] = ""
+    # key_path: tambem nunca persistido (caminho local de chave privada)
+    ssh["key_path"] = ""
+
+    # Garante que profile.slug salvo seja o sanitizado
+    pr = seguro.setdefault("profile", {})
+    if isinstance(pr, dict):
+        pr["slug"] = slug
+
+    destino = sites_dir() / f"{slug}.json"
+    if destino.exists() and not overwrite:
+        return {
+            "status": "exists",
+            "message": (
+                f"Ja existe '{destino.name}'. Confirme sobrescrita "
+                "(overwrite=true)."
+            ),
+            "path": str(destino),
+            "slug": slug,
+            "errors": [],
+        }
+
+    try:
+        destino.write_text(
+            json.dumps(seguro, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        _logger.info("Profile salvo: %s", destino)
+    except OSError as exc:
+        _logger.error("Falha ao gravar profile %s: %s", destino, exc)
+        return {"status": "erro",
+                "message": f"Falha ao gravar arquivo: {exc}",
+                "path": None, "slug": slug, "errors": [str(exc)]}
+
+    return {
+        "status": "ok",
+        "message": f"Profile '{slug}' salvo em {destino.name}",
+        "path": str(destino),
+        "slug": slug,
+        "errors": [],
+    }
+
+
+def delete_site_profile(slug: str) -> dict:
+    """
+    Remove config/sites/<slug>.json.
+    Protege slugs em PROFILES_PROTEGIDOS (ex.: 'example').
+
+    Retorna dict:
+      {"status": "ok"|"erro", "message": str, "path": str|None}
+    """
+    s = _slug_seguro(slug or "")
+    if not s:
+        return {"status": "erro", "message": "Slug ausente ou invalido.",
+                "path": None}
+    if s in PROFILES_PROTEGIDOS:
+        return {"status": "erro",
+                "message": f"Profile '{s}' e protegido e nao pode ser excluido.",
+                "path": None}
+
+    destino = sites_dir() / f"{s}.json"
+    if not destino.exists():
+        return {"status": "erro",
+                "message": f"Profile '{s}.json' nao encontrado.",
+                "path": str(destino)}
+
+    try:
+        destino.unlink()
+        _logger.info("Profile removido: %s", destino)
+    except OSError as exc:
+        _logger.error("Falha ao remover %s: %s", destino, exc)
+        return {"status": "erro",
+                "message": f"Falha ao remover arquivo: {exc}",
+                "path": str(destino)}
+
+    return {"status": "ok",
+            "message": f"Profile '{s}' removido.",
+            "path": str(destino)}
+
+
+# ---------------------------------------------------------------------- #
 # Relatorio Markdown
 # ---------------------------------------------------------------------- #
 def _check(b: bool) -> str:
@@ -513,6 +804,25 @@ def gerar_relatorio(contexto: dict) -> Path:
                    else "pulado")
             )
             linhas.append("")
+
+    # Etapas executadas/puladas (controle por step_flags)
+    etapas_exec = contexto.get("etapas_executadas") or []
+    etapas_pul = contexto.get("etapas_puladas") or []
+    if etapas_exec or etapas_pul:
+        linhas.append("## Etapas executadas")
+        if etapas_exec:
+            for e in etapas_exec:
+                linhas.append(f"- [x] {e}")
+        else:
+            linhas.append("- (nenhuma)")
+        linhas.append("")
+        linhas.append("## Etapas puladas")
+        if etapas_pul:
+            for e in etapas_pul:
+                linhas.append(f"- [ ] {e}")
+        else:
+            linhas.append("- (nenhuma)")
+        linhas.append("")
 
     # WordPress
     linhas.append("## WordPress")

@@ -23,41 +23,146 @@
     <!-- ===================== Form ===================== -->
     <div class="col-lg-5">
 
-      <!-- Profile JSON do Portal -->
+      <!-- Gerenciar Portal / Profile -->
       <div class="card shadow-sm mb-3" id="card-profile">
         <div class="card-header bg-white">
-          <strong>Profile JSON do Portal</strong>
+          <strong>Gerenciar Portal / Profile</strong>
           <span class="text-muted small ms-2">config/sites/*.json</span>
         </div>
         <div class="card-body">
+
           <div class="row g-2 align-items-end">
-            <div class="col-7">
-              <label class="form-label small mb-1">Profile disponivel</label>
-              <select class="form-select form-select-sm" id="select-profile">
-                <option value="">— escolha um profile —</option>
-              </select>
-            </div>
-            <div class="col-5 d-flex gap-1">
-              <button type="button" class="btn btn-outline-secondary btn-sm flex-fill"
-                      id="btn-carregar-profile">Carregar</button>
-              <button type="button" class="btn btn-success btn-sm flex-fill"
-                      id="btn-setup-profile">Rodar setup</button>
+            <div class="col-12">
+              <label class="form-label small mb-1">Profile salvo</label>
+              <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="select-profile">
+                  <option value="">— escolha um profile —</option>
+                </select>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="btn-recarregar-lista" title="Recarregar lista">↻</button>
+              </div>
             </div>
           </div>
-          <div id="profile-info" class="small mt-2 text-muted">
-            Nenhum profile carregado.
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    id="btn-novo-profile">Novo profile</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    id="btn-carregar-profile">Carregar</button>
+            <button type="button" class="btn btn-outline-info btn-sm"
+                    id="btn-validar-profile">Validar</button>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    id="btn-salvar-profile">Salvar profile</button>
+            <button type="button" class="btn btn-outline-danger btn-sm"
+                    id="btn-excluir-profile">Excluir</button>
+            <button type="button" class="btn btn-success btn-sm ms-auto"
+                    id="btn-setup-profile">Rodar setup</button>
           </div>
+
+          <div id="profile-info" class="small mt-3 text-muted">
+            Nenhum profile carregado. Clique em <em>Novo profile</em> para
+            comecar do zero ou em <em>Carregar</em> para editar um existente.
+          </div>
+
+          <hr class="my-3">
+
+          <div class="small fw-semibold text-muted mb-2">
+            Etapas a executar no setup
+          </div>
+          <div class="row g-1" id="step-flags">
+            <div class="col-6">
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_install_plugins" id="step-install-plugins" checked>
+                <label class="form-check-label small" for="step-install-plugins">
+                  Instalar plugins
+                </label>
+              </div>
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_configure_wp" id="step-configure-wp" checked>
+                <label class="form-check-label small" for="step-configure-wp">
+                  Configurar WordPress
+                </label>
+              </div>
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_apply_seo" id="step-apply-seo" checked>
+                <label class="form-check-label small" for="step-apply-seo">
+                  Aplicar SEO tecnico
+                </label>
+              </div>
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_generate_report" id="step-generate-report" checked>
+                <label class="form-check-label small" for="step-generate-report">
+                  Gerar relatorio
+                </label>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_create_pages" id="step-create-pages" checked>
+                <label class="form-check-label small" for="step-create-pages">
+                  Criar paginas
+                </label>
+              </div>
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_create_categories" id="step-create-categories" checked>
+                <label class="form-check-label small" for="step-create-categories">
+                  Criar categorias
+                </label>
+              </div>
+              <div class="form-check form-check-sm">
+                <input class="form-check-input" type="checkbox"
+                       name="step_create_test_post" id="step-create-test-post" checked>
+                <label class="form-check-label small" for="step-create-test-post">
+                  Criar post de teste
+                </label>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
       <div class="card shadow-sm">
         <div class="card-header bg-white">
           <strong>Configuracao</strong>
+          <span class="text-muted small ms-2">
+            os mesmos campos sao usados pelo modo manual e pelo profile
+          </span>
         </div>
         <div class="card-body">
           <form id="form-config" autocomplete="off">
 
-            <h6 class="text-uppercase text-muted small mt-1 mb-2">Portal</h6>
+            <h6 class="text-uppercase text-muted small mt-1 mb-2">Profile</h6>
+
+            <div class="row g-2">
+              <div class="col-7">
+                <label class="form-label">Slug</label>
+                <input type="text" class="form-control" name="profile_slug"
+                       placeholder="meusite" autocomplete="off">
+                <div class="form-text">
+                  Nome do arquivo: <code>config/sites/&lt;slug&gt;.json</code>
+                </div>
+              </div>
+              <div class="col-5">
+                <label class="form-label">Versao</label>
+                <input type="text" class="form-control" name="profile_version"
+                       value="1.0.0" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="mb-3 mt-2">
+              <label class="form-label">Descricao</label>
+              <input type="text" class="form-control" name="profile_description"
+                     placeholder="Profile do meu portal" autocomplete="off">
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">Portal</h6>
 
             <div class="mb-3">
               <label class="form-label">Nome do portal</label>
@@ -79,7 +184,20 @@
               <label class="form-label">Dominio</label>
               <input type="text" class="form-control" name="portal_domain"
                      value="{{ env.PORTAL_DOMAIN or '' }}"
-                     placeholder="meusite.com.br" required>
+                     placeholder="https://meusite.com.br" required>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label">Idioma</label>
+                <input type="text" class="form-control" name="portal_language"
+                       value="pt-BR">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Timezone</label>
+                <input type="text" class="form-control" name="portal_timezone"
+                       value="America/Sao_Paulo">
+              </div>
             </div>
 
             <h6 class="text-uppercase text-muted small mt-3 mb-2">WordPress</h6>
@@ -98,12 +216,16 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Application Password</label>
+              <label class="form-label">
+                Application Password
+                <span class="badge bg-warning text-dark">nao salvo no JSON</span>
+              </label>
               <input type="password" class="form-control" name="wp_app_password"
                      value="{{ env.WP_APP_PASSWORD or '' }}"
-                     placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" required>
+                     placeholder="xxxx xxxx xxxx xxxx xxxx xxxx">
               <div class="form-text">
-                Formato: <code>xxxx xxxx xxxx xxxx xxxx xxxx</code> (24 caracteres alfanumericos).
+                Formato: <code>xxxx xxxx xxxx xxxx xxxx xxxx</code>.
+                Necessaria apenas em runtime — nunca persistida.
               </div>
             </div>
 
@@ -122,25 +244,41 @@
               </div>
             </div>
 
-            <div class="mb-3 mt-3">
-              <label class="form-label">SSH user</label>
-              <input type="text" class="form-control" name="ssh_user"
-                     value="{{ env.SSH_USER or 'root' }}" required>
+            <div class="row g-2 mt-2">
+              <div class="col-7">
+                <label class="form-label">SSH user</label>
+                <input type="text" class="form-control" name="ssh_user"
+                       value="{{ env.SSH_USER or 'root' }}" required>
+              </div>
+              <div class="col-5">
+                <label class="form-label">Auth method</label>
+                <select class="form-select" name="ssh_auth_method">
+                  <option value="password" selected>password</option>
+                  <option value="key">key</option>
+                </select>
+              </div>
             </div>
 
-            <div class="mb-3">
-              <label class="form-label">SSH password (opcional se usar chave)</label>
+            <div class="mb-3 mt-2">
+              <label class="form-label">
+                SSH password
+                <span class="badge bg-warning text-dark">nao salvo no JSON</span>
+              </label>
               <input type="password" class="form-control" name="ssh_password"
                      value="{{ env.SSH_PASSWORD or '' }}">
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Caminho da chave privada SSH (opcional)</label>
+              <label class="form-label">
+                Caminho da chave privada SSH
+                <span class="badge bg-warning text-dark">nao salvo no JSON</span>
+              </label>
               <input type="text" class="form-control" name="ssh_key_path"
                      value="{{ env.SSH_KEY_PATH or '' }}"
                      placeholder="C:\Users\voce\.ssh\id_rsa">
               <div class="form-text">
-                Use senha OU chave (mutuamente exclusivos). Chave com passphrase nao e suportada.
+                Use senha OU chave (mutuamente exclusivos). Chave com passphrase
+                nao e suportada.
               </div>
             </div>
 
@@ -150,7 +288,7 @@
               <label class="form-label">Caminho do WordPress no VPS</label>
               <input type="text" class="form-control" name="wp_path"
                      value="{{ env.WP_PATH or '' }}"
-                     placeholder="/var/www/meusite/htdocs" required>
+                     placeholder="/home/site/htdocs/meusite.com.br" required>
             </div>
 
             <div class="mb-3">
@@ -159,7 +297,100 @@
                      value="{{ env.WPCLI_BIN or '/usr/local/bin/wp' }}" required>
             </div>
 
-            <h6 class="text-uppercase text-muted small mt-3 mb-2">Plugins opcionais</h6>
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">SEO</h6>
+
+            <div class="mb-3">
+              <label class="form-label">Titulo SEO do site</label>
+              <input type="text" class="form-control" name="seo_site_title"
+                     placeholder="Igual ao nome do portal por padrao">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Tagline</label>
+              <input type="text" class="form-control" name="seo_tagline"
+                     placeholder="Subtitulo / descricao curta">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Estrutura de permalink</label>
+              <input type="text" class="form-control" name="seo_permalink_structure"
+                     value="/%postname%/">
+            </div>
+
+            <div class="row g-1">
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="seo_blog_public" id="seo-blog-public" checked>
+                  <label class="form-check-label small" for="seo-blog-public">
+                    Indexavel (blog_public)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="seo_comments_enabled" id="seo-comments">
+                  <label class="form-check-label small" for="seo-comments">
+                    Comentarios ativos
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="seo_ping_status" id="seo-pings">
+                  <label class="form-check-label small" for="seo-pings">
+                    Pingbacks ativos
+                  </label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="seo_rank_math" id="seo-rank-math" checked>
+                  <label class="form-check-label small" for="seo-rank-math">
+                    Rank Math ativo
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="seo_instant_indexing" id="seo-instant-indexing" checked>
+                  <label class="form-check-label small" for="seo-instant-indexing">
+                    Instant Indexing ativo
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">Plugins</h6>
+
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label small mb-1">
+                  Obrigatorios <small class="text-muted">(um slug por linha)</small>
+                </label>
+                <textarea class="form-control form-control-sm" rows="3"
+                          name="plugins_required"
+                          placeholder="seo-by-rank-math&#10;instant-indexing&#10;classic-editor"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label small mb-1">
+                  Opcionais <small class="text-muted">(um slug por linha)</small>
+                </label>
+                <textarea class="form-control form-control-sm" rows="2"
+                          name="plugins_optional"
+                          placeholder="redis-cache&#10;site-kit-by-google"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label small mb-1">
+                  Pular <small class="text-muted">(um slug por linha)</small>
+                </label>
+                <textarea class="form-control form-control-sm" rows="2"
+                          name="plugins_skip"
+                          placeholder="(vazio para nao pular nenhum)"></textarea>
+              </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">
+              Plugins opcionais (modo manual)
+            </h6>
             <div id="plugins-opcionais">
               {% for p in plugins_opcionais %}
                 <div class="form-check">
@@ -175,6 +406,60 @@
               {% endfor %}
             </div>
 
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">Conteudo</h6>
+
+            <div class="row g-1">
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="content_create_pages" id="ct-pages" checked>
+                  <label class="form-check-label small" for="ct-pages">
+                    Criar paginas institucionais
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="content_create_categories" id="ct-cats" checked>
+                  <label class="form-check-label small" for="ct-cats">
+                    Criar categorias do nicho
+                  </label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="content_create_test_post" id="ct-post" checked>
+                  <label class="form-check-label small" for="ct-post">
+                    Criar post de teste
+                  </label>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label small mb-1">Slug homepage</label>
+                  <input type="text" class="form-control form-control-sm"
+                         name="content_homepage_slug" value="inicio">
+                </div>
+              </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-3 mb-2">Relatorio</h6>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     name="report_generate_markdown"
+                     id="rep-markdown" checked>
+              <label class="form-check-label small" for="rep-markdown">
+                Gerar relatorio em Markdown
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox"
+                     name="report_include_manual_pending_tasks"
+                     id="rep-manual" checked>
+              <label class="form-check-label small" for="rep-manual">
+                Incluir pendencias manuais
+              </label>
+            </div>
+
           </form>
         </div>
       </div>
@@ -183,7 +468,7 @@
     <!-- ===================== Acoes + Log ===================== -->
     <div class="col-lg-7">
       <div class="card shadow-sm mb-3">
-        <div class="card-header bg-white"><strong>Acoes</strong></div>
+        <div class="card-header bg-white"><strong>Acoes manuais</strong></div>
         <div class="card-body">
 
           <div class="mb-2 fw-semibold small text-muted">Validacoes</div>

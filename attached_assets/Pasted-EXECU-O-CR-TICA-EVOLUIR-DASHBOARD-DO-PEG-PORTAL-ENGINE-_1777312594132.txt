@@ -1,0 +1,195 @@
+EXECUÇÃO CRÍTICA — EVOLUIR DASHBOARD DO PEG PORTAL ENGINE
+
+Objetivo:
+Transformar o dashboard Flask do PEG Portal Engine em um painel completo para cadastrar, editar, salvar e executar Site Profiles JSON diretamente pela interface.
+
+Contexto:
+O sistema já possui:
+- Flask + Bootstrap em app.py, templates/index.html e static/app.js
+- Site Profiles JSON em config/sites/
+- Funções em provisioner/utils.py:
+  list_site_profiles()
+  load_site_profile()
+  validate_site_profile()
+  sanitize_site_profile()
+  merge_profile_with_payload()
+  profile_para_cfg()
+  extrair_profile_meta()
+- setup_completo() em provisioner/tasks.py
+- endpoints:
+  GET /api/site-profiles
+  POST /api/load-site-profile
+  POST /api/setup-from-profile
+
+Tarefa principal:
+Criar no dashboard uma área completa de gerenciamento de portais, onde eu possa:
+
+1. Criar novo portal/profile pelo painel
+2. Editar profile existente
+3. Salvar o profile em config/sites/<slug>.json
+4. Validar o JSON antes de salvar
+5. Carregar o profile no formulário
+6. Rodar setup completo pelo profile
+7. Escolher quais etapas executar:
+   - instalar plugins
+   - configurar WordPress
+   - aplicar SEO técnico
+   - criar páginas
+   - criar categorias
+   - criar post de teste
+   - gerar relatório
+8. Permitir marcar plugins obrigatórios, opcionais e skip diretamente no painel
+9. Permitir definir:
+   - nome do portal
+   - slug
+   - domínio
+   - nicho
+   - idioma
+   - timezone
+   - URL do WordPress
+   - usuário admin
+   - Application Password
+   - host SSH
+   - porta SSH
+   - usuário SSH
+   - senha SSH ou key_path
+   - wp_path
+   - wp_cli_path
+   - título SEO
+   - tagline
+   - permalink
+   - blog_public
+   - comentários ativados/desativados
+   - Rank Math ativo
+   - Instant Indexing ativo
+
+Regras obrigatórias:
+- NÃO quebrar o modo manual atual.
+- NÃO remover endpoints existentes.
+- NÃO salvar senhas reais no JSON.
+- application_password, ssh.password e ssh.key_path devem continuar como campos vazios no arquivo salvo.
+- Senhas digitadas no painel só podem ser usadas em runtime.
+- Toda resposta da API deve retornar JSON estruturado:
+  { status, message, details }
+- Validar profile antes de salvar.
+- Se o slug já existir, pedir confirmação visual no frontend antes de sobrescrever.
+- Criar tratamento de erro amigável em português.
+- Não criar banco de dados. Continuar usando arquivos JSON.
+- Manter compatibilidade com Windows.
+
+Novos endpoints necessários:
+1. GET /api/site-profiles
+   Lista profiles existentes.
+
+2. POST /api/load-site-profile
+   Carrega profile sanitizado.
+
+3. POST /api/save-site-profile
+   Recebe dados do formulário, monta JSON no schema oficial, valida e salva em config/sites/<slug>.json.
+
+4. POST /api/delete-site-profile
+   Remove um profile, com proteção para não apagar example.json.
+
+5. POST /api/validate-site-profile
+   Valida os dados atuais do formulário sem salvar.
+
+6. POST /api/setup-from-profile
+   Já existe, mas deve aceitar flags de execução:
+   {
+     "slug": "aeconomia",
+     "overrides": {...},
+     "steps": {
+       "install_plugins": true,
+       "configure_wp": true,
+       "apply_seo": true,
+       "create_pages": true,
+       "create_categories": true,
+       "create_test_post": false,
+       "generate_report": true
+     }
+   }
+
+Alterações necessárias:
+
+1. app.py
+- Adicionar endpoints de salvar, deletar e validar profile.
+- Criar helper para montar profile a partir do payload do dashboard.
+- Garantir que credenciais sensíveis sejam removidas antes de salvar.
+- Integrar flags de execução ao setup_from_profile.
+
+2. provisioner/utils.py
+- Adicionar função save_site_profile(profile).
+- Adicionar função delete_site_profile(slug).
+- Adicionar função build_profile_from_payload(payload).
+- Reforçar validate_site_profile().
+- Garantir escrita JSON formatada com indent=2 e ensure_ascii=False.
+
+3. provisioner/tasks.py
+- Adaptar setup_completo para respeitar flags de execução.
+- Se create_pages=false, não criar páginas.
+- Se create_categories=false, não criar categorias.
+- Se create_test_post=false, não criar post.
+- Se install_plugins=false, não instalar plugins.
+- Se apply_seo=false, não aplicar SEO técnico.
+- Se generate_report=true, gerar relatório mesmo em execução parcial.
+- Registrar no relatório quais etapas foram executadas e quais foram puladas.
+
+4. templates/index.html
+- Criar seção “Gerenciar Portal/Profile”.
+- Botões:
+  - Novo profile
+  - Carregar profile
+  - Validar
+  - Salvar profile
+  - Excluir profile
+  - Rodar setup
+- Criar checkboxes para etapas de execução.
+- Criar campos organizados por blocos:
+  - Portal
+  - WordPress
+  - SSH
+  - SEO
+  - Plugins
+  - Conteúdo
+  - Relatório
+
+5. static/app.js
+- Carregar lista de profiles ao abrir.
+- Preencher formulário ao carregar profile.
+- Enviar payload para salvar.
+- Confirmar sobrescrita se slug já existir.
+- Confirmar exclusão.
+- Exibir logs amigáveis.
+- Nunca preencher automaticamente campos de senha com valores mascarados.
+- Enviar senhas apenas como override no setup.
+
+6. DOCUMENTACAO.md
+- Atualizar seção de Site Profiles.
+- Documentar novos endpoints.
+- Documentar fluxo pelo dashboard.
+- Documentar regras de segurança.
+- Documentar execução parcial por etapas.
+
+7. README.md
+- Atualizar guia rápido:
+  - abrir dashboard
+  - criar profile
+  - salvar
+  - carregar
+  - preencher senhas
+  - rodar setup
+
+Critério de aceite:
+- Consigo abrir o dashboard.
+- Consigo cadastrar um portal novo sem editar JSON manualmente.
+- Consigo salvar o profile.
+- O arquivo aparece em config/sites/<slug>.json.
+- O JSON salvo não contém senha.
+- Consigo carregar o profile salvo.
+- Consigo rodar setup completo pelo profile.
+- Consigo rodar setup parcial marcando/desmarcando etapas.
+- O modo manual antigo continua funcionando.
+- O relatório mostra profile usado, etapas executadas, etapas puladas e pendências.
+- Todos os endpoints retornam JSON consistente.
+- Rodar validação Python sem erro:
+  python -m compileall .

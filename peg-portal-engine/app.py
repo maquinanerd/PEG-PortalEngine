@@ -17,14 +17,17 @@ from flask import Flask, jsonify, render_template, request
 from provisioner import tasks
 from provisioner.logger import get_logger
 from provisioner.utils import (
+    build_profile_from_payload,
     carregar_niches,
     carregar_plugins,
+    delete_site_profile,
     extrair_profile_meta,
     list_site_profiles,
     load_site_profile,
     merge_profile_with_payload,
     profile_para_cfg,
     sanitize_site_profile,
+    save_site_profile,
     validate_site_profile,
 )
 
@@ -280,6 +283,9 @@ def api_setup_from_profile():
         return _erro_json("Informe 'slug' do profile.")
 
     overrides = payload.get("overrides") or {}
+    steps_in = payload.get("steps") or {}
+    if not isinstance(steps_in, dict):
+        steps_in = {}
 
     try:
         profile = load_site_profile(slug)
@@ -329,12 +335,21 @@ def api_setup_from_profile():
     # required + optional viram opcionais_extras (forca instalacao)
     opcionais_extras = sorted(set(required) | set(optional))
 
+    # Step flags: combina o que vem do front com defaults do profile (content)
     content_cfg = profile_merged.get("content") or {}
-    content_flags = {
-        "create_pages":     bool(content_cfg.get("create_pages", True)),
+    report_cfg = profile_merged.get("report") or {}
+    step_flags = {
+        "install_plugins":   True,
+        "configure_wp":      True,
+        "apply_seo":         True,
+        "create_pages":      bool(content_cfg.get("create_pages", True)),
         "create_categories": bool(content_cfg.get("create_categories", True)),
-        "create_test_post": bool(content_cfg.get("create_test_post", True)),
+        "create_test_post":  bool(content_cfg.get("create_test_post", True)),
+        "generate_report":   bool(report_cfg.get("generate_markdown", True)),
     }
+    for k in step_flags:
+        if k in steps_in:
+            step_flags[k] = bool(steps_in[k])
 
     profile_meta = extrair_profile_meta(profile_merged)
     profile_meta["plugins_required"] = required
@@ -345,10 +360,10 @@ def api_setup_from_profile():
             cfg,
             opcionais_extras=opcionais_extras,
             pular_plugins=skip,
-            content_flags=content_flags,
             profile_meta=profile_meta,
+            step_flags=step_flags,
         )
-        # Anexa identificador do profile na resposta
+        # Anexa identificador do profile e flags na resposta
         if isinstance(resultado, dict):
             resultado.setdefault("details", {})
             if isinstance(resultado["details"], dict):
@@ -357,10 +372,99 @@ def api_setup_from_profile():
                     "name": profile_meta.get("name"),
                     "version": profile_meta.get("version"),
                 }
+                resultado["details"]["step_flags"] = step_flags
         return jsonify(resultado)
     except Exception as exc:
         _logger.exception("Erro em setup-from-profile: %s", exc)
         return _erro_json(f"Erro interno: {exc}", status_http=500)
+
+
+# ---------------------------------------------------------------------- #
+# Cadastro / edicao / persistencia de Site Profiles
+# ---------------------------------------------------------------------- #
+def _profile_do_payload(payload: dict) -> dict:
+    """
+    Aceita payload com {profile: {...}} aninhado OU com chaves achatadas
+    do dashboard (profile_slug, portal_name, seo_blog_public, ...).
+    """
+    if not isinstance(payload, dict):
+        return {}
+    if isinstance(payload.get("profile_obj"), dict):
+        return payload["profile_obj"]
+    # heuristica: se tem 'profile' e 'portal' aninhados, ja e um profile
+    if (
+        isinstance(payload.get("profile"), dict)
+        and isinstance(payload.get("portal"), dict)
+    ):
+        return payload
+    return build_profile_from_payload(payload)
+
+
+@app.post("/api/validate-site-profile")
+def api_validate_site_profile():
+    payload = request.get_json(silent=True) or {}
+    try:
+        profile = _profile_do_payload(payload)
+        ok, erros = validate_site_profile(profile)
+        return jsonify({
+            "status": "ok" if ok else "erro",
+            "message": (
+                "Profile valido."
+                if ok else f"{len(erros)} erro(s) de validacao."
+            ),
+            "details": {
+                "valid": ok,
+                "errors": erros,
+                "profile": sanitize_site_profile(profile),
+            },
+        })
+    except Exception as exc:
+        _logger.exception("Erro em validate-site-profile: %s", exc)
+        return _erro_json(f"Erro ao validar: {exc}", status_http=500)
+
+
+@app.post("/api/save-site-profile")
+def api_save_site_profile():
+    payload = request.get_json(silent=True) or {}
+    overwrite = bool(payload.get("overwrite"))
+    try:
+        profile = _profile_do_payload(payload)
+        resultado = save_site_profile(profile, overwrite=overwrite)
+        status = resultado.get("status", "erro")
+        http = 200 if status == "ok" else (409 if status == "exists" else 400)
+        return jsonify({
+            "status": status,
+            "message": resultado.get("message", ""),
+            "details": {
+                "path": resultado.get("path"),
+                "slug": resultado.get("slug"),
+                "errors": resultado.get("errors") or [],
+                "overwrite_required": status == "exists",
+            },
+        }), http
+    except Exception as exc:
+        _logger.exception("Erro em save-site-profile: %s", exc)
+        return _erro_json(f"Erro ao salvar: {exc}", status_http=500)
+
+
+@app.post("/api/delete-site-profile")
+def api_delete_site_profile():
+    payload = request.get_json(silent=True) or {}
+    slug = (payload.get("slug") or "").strip()
+    if not slug:
+        return _erro_json("Informe 'slug' do profile.")
+    try:
+        resultado = delete_site_profile(slug)
+        status = resultado.get("status", "erro")
+        http = 200 if status == "ok" else 400
+        return jsonify({
+            "status": status,
+            "message": resultado.get("message", ""),
+            "details": {"path": resultado.get("path"), "slug": slug},
+        }), http
+    except Exception as exc:
+        _logger.exception("Erro em delete-site-profile: %s", exc)
+        return _erro_json(f"Erro ao remover: {exc}", status_http=500)
 
 
 # ---------------------------------------------------------------------- #

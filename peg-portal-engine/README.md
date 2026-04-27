@@ -143,6 +143,57 @@ o modo manual.
 
 ---
 
+## Dashboard de gerenciamento de profiles
+
+O card **Gerenciar Portal / Profile** (topo da coluna esquerda) traz um CRUD
+completo dos arquivos `config/sites/*.json`, sem banco de dados.
+
+### Botoes
+
+- **Novo profile** — limpa o formulario e prepara um profile em branco.
+- **Carregar** — le o profile selecionado e preenche todos os campos do
+  formulario (incluindo SEO, plugins, conteudo e relatorio). Senhas
+  **nunca** sao restauradas — voce digita em runtime.
+- **Validar** — envia o conteudo atual do formulario para
+  `POST /api/validate-site-profile` e mostra erros de schema.
+- **Salvar profile** — chama `POST /api/save-site-profile`. Se o arquivo
+  ja existir, o painel pergunta antes de sobrescrever.
+- **Excluir** — chama `POST /api/delete-site-profile` apos confirmacao.
+  O profile `example` e protegido e nao pode ser removido.
+- **Rodar setup** — chama `POST /api/setup-from-profile` enviando o
+  dicionario de etapas (veja abaixo).
+
+### Etapas controlaveis pelo dashboard
+
+Os checkboxes **Etapas a executar no setup** controlam, por execucao:
+
+| Flag                | Padrao | O que controla                          |
+|---------------------|--------|------------------------------------------|
+| `install_plugins`   | on     | etapas 5-6 (instalar plugins)            |
+| `configure_wp`      | on     | etapa 7 (permalink, indexacao, opcoes)   |
+| `apply_seo`         | on     | etapa 8 + definicao de homepage          |
+| `create_pages`      | on     | etapa 11 (paginas institucionais)        |
+| `create_categories` | on     | etapa 10 (categorias do nicho)           |
+| `create_test_post`  | on     | etapa 12 (post de teste)                 |
+| `generate_report`   | on     | etapa 14 (relatorio Markdown)            |
+
+Etapas desligadas viram avisos no log e aparecem na secao
+**"Etapas puladas"** do relatorio. Etapas executadas aparecem em
+**"Etapas executadas"**.
+
+### Sensiveis nunca persistidos
+
+Antes de gravar em disco, `save_site_profile` **zera** sempre:
+
+- `wordpress.application_password`
+- `ssh.password`
+- `ssh.key_path`
+
+Os campos sensiveis ficam apenas em memoria (formulario / `.env`) e podem
+ser passados via `overrides` no `setup-from-profile`.
+
+---
+
 ## Estrutura do projeto
 
 ```
