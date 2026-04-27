@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "tkczasH6r-1yukUe-wjE7"
+uri = "file://peg-portal-engine/MANUAL.md"
+type = "text"
+title = "PEG Portal Engine — Manual Tecnico Completo"
