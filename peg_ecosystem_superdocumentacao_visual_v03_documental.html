@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PEG Ecosystem — Superdocumentação Visual v0.3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F3EFE4;
+  --paper:#FFFDF6;
+  --paper2:#F8F4EA;
+  --ink:#111111;
+  --muted:#66625B;
+  --muted2:#928B7E;
+  --line:#D9D1C2;
+  --red:#8D1B1B;
+  --red2:#5F1111;
+  --redBg:rgba(141,27,27,.08);
+  --gold:#B48A3B;
+  --green:#3C6B4A;
+  --blue:#283F63;
+  --shadow:0 22px 50px rgba(17,17,17,.08);
+  --mono:'JetBrains Mono', monospace;
+  --font:'Montserrat', sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));width:0;z-index:999}
+.layout{display:grid;grid-template-columns:292px minmax(0,1fr);max-width:1560px;margin:0 auto}
+.sidebar{position:sticky;top:0;height:100vh;padding:28px 18px;border-right:1px solid var(--line);background:rgba(243,239,228,.92);backdrop-filter:blur(10px);overflow:auto}
+.brand{padding:14px 14px 18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.brand .k{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700}
+.brand h1{font-size:20px;line-height:1;margin:9px 0 8px;font-weight:900;letter-spacing:-.04em;text-transform:uppercase}
+.brand p{font-size:11px;color:var(--muted);line-height:1.55;margin:0}
+.nav-title{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-weight:700;margin:18px 14px 10px}
+#nav{display:flex;flex-direction:column;gap:3px}
+#nav a{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;text-decoration:none;color:var(--muted);font-size:12px;font-weight:700;padding:9px 12px;border-radius:12px;border:1px solid transparent;line-height:1.25}
+#nav a span:first-child{font-family:var(--mono);font-size:10px;color:var(--muted2)}
+#nav a:hover{background:rgba(255,255,255,.55);color:var(--ink)}
+#nav a.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+#nav a.active span:first-child{color:var(--gold)}
+.side-card{margin:18px 0 0;padding:14px;border:1px solid var(--line);background:var(--paper);border-radius:18px}
+.side-card b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--red);margin-bottom:7px}
+.side-card p{font-size:11.5px;color:var(--muted);line-height:1.55;margin:0}
+main{min-width:0;padding:0 48px 80px}
+.hero{padding:72px 0 48px;border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) 430px;gap:34px;align-items:stretch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700}
+.hero h1{font-size:clamp(56px,7vw,106px);line-height:.87;letter-spacing:-.07em;text-transform:uppercase;margin:18px 0 20px;font-weight:900}
+.hero h1 span{color:var(--red)}
+.hero p{font-size:17px;line-height:1.85;color:#2b2925;max-width:880px;margin:0}
+.hero-panel{background:var(--ink);color:#fff;border-radius:28px;padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;min-height:360px;position:relative;overflow:hidden}
+.hero-panel:before{content:"";position:absolute;inset:-80px -40px auto auto;width:260px;height:260px;background:radial-gradient(circle,rgba(141,27,27,.45),transparent 70%);border-radius:50%}
+.hero-panel .hp-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:#E8B95B;text-transform:uppercase;font-weight:700}
+.hero-panel h3{font-size:26px;line-height:1.08;letter-spacing:-.04em;margin:10px 0 14px;position:relative}
+.hero-panel p{color:rgba(255,255,255,.68);font-size:13px;line-height:1.7;position:relative}
+.hp-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:22px;position:relative}
+.hp-cell{border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:13px;background:rgba(255,255,255,.04)}
+.hp-cell b{display:block;font-size:20px;color:#fff}
+.hp-cell span{font-size:10px;text-transform:uppercase;color:rgba(255,255,255,.45);font-family:var(--mono);letter-spacing:.12em}
+.summary-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:28px}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px 16px;min-height:130px}
+.kpi-num{font-size:32px;font-weight:900;letter-spacing:-.05em;color:var(--red);line-height:1}
+.kpi-label{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.13em;color:var(--ink);font-weight:800;margin-top:10px}
+.kpi-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+.section{padding:56px 0;border-bottom:1px solid var(--line)}
+.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;margin-bottom:26px}
+.s-label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:800;margin-bottom:8px}
+h2{font-size:34px;line-height:1.05;letter-spacing:-.045em;margin:0;font-weight:900;text-transform:uppercase}
+.s-note{font-family:var(--mono);font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.12em;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--paper)}
+.lead{font-size:16px;line-height:1.85;color:#2b2925;max-width:980px;margin:0 0 24px}
+p{font-size:14px;line-height:1.75;color:var(--muted);margin:0 0 12px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 1px 0 rgba(17,17,17,.02)}
+.card.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card.dark p,.card.dark li{color:rgba(255,255,255,.68)}
+.card.dark h3{color:#fff}
+.mini{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--red);font-weight:800;margin-bottom:10px}
+.card.dark .mini{color:#E8B95B}
+.card h3{font-size:20px;line-height:1.1;letter-spacing:-.035em;margin:0 0 12px;font-weight:900}
+.card ul{padding-left:18px;margin:14px 0 0}
+.card li{font-size:13px;line-height:1.7;margin-bottom:7px;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}
+.badge{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;border:1px solid var(--line);border-radius:999px;padding:6px 8px;background:rgba(255,255,255,.62);color:var(--muted)}
+.badge.red{background:var(--redBg);border-color:rgba(141,27,27,.18);color:var(--red)}
+.badge.ok{background:rgba(60,107,74,.10);border-color:rgba(60,107,74,.22);color:var(--green)}
+.badge.warn{background:rgba(180,138,59,.13);border-color:rgba(180,138,59,.25);color:#7a5c1e}
+.badge.blue{background:rgba(40,63,99,.10);border-color:rgba(40,63,99,.20);color:var(--blue)}
+.quote,.note{border-left:4px solid var(--red);background:var(--paper);border-radius:0 18px 18px 0;padding:19px 22px;margin:24px 0;color:#2b2925;box-shadow:0 10px 28px rgba(17,17,17,.04)}
+.quote p,.note{font-size:14px;line-height:1.75}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:20px;background:var(--paper);margin:18px 0 0}
+table{border-collapse:collapse;width:100%;min-width:800px}
+th{background:var(--ink);color:#fff;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:13px 15px}
+td{font-size:13px;line-height:1.55;color:var(--muted);padding:14px 15px;border-top:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:800;color:var(--ink)}
+tbody tr:nth-child(even){background:rgba(141,27,27,.025)}
+.diagram{background:var(--paper);border:1px solid var(--line);border-radius:26px;padding:22px;margin:24px 0}
+.diagram-title{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--red);font-weight:900;margin-bottom:16px}
+.diagram-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.dbox{border:1px solid var(--line);background:var(--paper2);border-radius:18px;padding:16px;position:relative}
+.dbox:not(:last-child):after{content:"→";position:absolute;right:-17px;top:50%;transform:translateY(-50%);color:var(--red);font-weight:900;font-size:18px;z-index:2}
+.dbox h4{font-size:15px;margin:0 0 8px;font-weight:900;letter-spacing:-.02em}
+.dbox p{font-size:12px;line-height:1.55;margin:0}
+.flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:20px 0}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:15px;min-height:145px}
+.step-num{font-family:var(--mono);font-size:10px;color:var(--red);font-weight:900;margin-bottom:10px}
+.step-title{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:8px}
+.step-desc{font-size:12px;color:var(--muted);line-height:1.55}
+.layer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.layer{background:var(--ink);color:#fff;border-radius:22px;padding:18px;min-height:245px}
+.layer h3{margin:0 0 10px;font-size:16px;letter-spacing:-.02em}
+.layer .mini{color:#E8B95B}
+.layer ul{padding-left:18px;margin:0}
+.layer li{font-size:12px;line-height:1.65;color:rgba(255,255,255,.68)}
+.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.check{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 14px 14px 42px;position:relative;font-size:13px;line-height:1.45;color:var(--muted)}
+.check:before{content:"";position:absolute;left:15px;top:16px;width:13px;height:13px;border-radius:4px;border:2px solid var(--red)}
+.check b{color:var(--ink)}
+.prompt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.prompt-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;grid-template-columns:130px 1fr;gap:14px}
+.prompt-card code{font-family:var(--mono);font-size:11px;color:var(--red);font-weight:800;background:var(--redBg);border-radius:12px;padding:10px;align-self:start}
+.prompt-card h4{margin:0 0 6px;font-size:15px}
+.prompt-card p{font-size:12.5px;margin:0}
+.risk{display:grid;grid-template-columns:95px 1fr;gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--paper);margin-bottom:10px}
+.risk .sev{background:var(--ink);color:#fff;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;display:flex;align-items:center;justify-content:center;padding:12px}
+.risk .sev.high{background:var(--red2)}
+.risk .sev.mid{background:#7a5c1e}
+.risk .sev.low{background:var(--blue)}
+.risk .body{padding:15px 18px}
+.risk h4{margin:0 0 5px;font-size:15px}
+.risk p{font-size:12.5px;margin:0}
+.timeline{display:grid;gap:10px}
+.trow{display:grid;grid-template-columns:120px 1fr 150px;border:1px solid var(--line);background:var(--paper);border-radius:18px;overflow:hidden}
+.trow .phase{background:var(--ink);color:#fff;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;display:flex;align-items:center;padding:14px}
+.trow .detail{padding:14px 18px}
+.trow .detail h4{margin:0 0 4px;font-size:15px}
+.trow .detail p{font-size:12.5px;margin:0}
+.trow .owner{padding:14px;background:var(--paper2);border-left:1px solid var(--line);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:flex;align-items:center}
+.cols{columns:2;column-gap:20px}
+.codeblock{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--ink);color:#fff;padding:18px;border-radius:18px;overflow:auto;margin:16px 0}
+.footer{display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--line);padding:24px 0;color:var(--muted2);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em}
+@media(max-width:1180px){
+  .layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.hero-grid{grid-template-columns:1fr}.summary-grid,.grid-4{grid-template-columns:repeat(2,1fr)}main{padding:0 24px 70px}.diagram-grid,.layer-grid{grid-template-columns:1fr}.dbox:after{display:none}.flow{grid-template-columns:repeat(2,1fr)}.prompt-grid,.grid-3,.grid-2,.check-grid{grid-template-columns:1fr}.trow{grid-template-columns:1fr}.trow .owner{border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:700px){.summary-grid{grid-template-columns:1fr}.hero h1{font-size:54px}.section-head{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.prompt-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand"><div class="k">Superdocumentação v0.3</div><h1>PEG Ecosystem</h1><p>Documento visual estático para entender programas, portais, fontes, prompts, workflows e pendências.</p></div>
+  <div class="nav-title">Navegação</div>
+  <nav id="nav">
+    <a href="#topo"><span>00</span><span>Capa</span></a>
+    <a href="#visao"><span>01</span><span>Visão geral</span></a>
+    <a href="#mapa"><span>02</span><span>Mapa do ecossistema</span></a>
+    <a href="#programas"><span>03</span><span>Programas</span></a>
+    <a href="#rssprime"><span>04</span><span>RSSPRIME profundo</span></a>
+    <a href="#mn26"><span>05</span><span>MN26 técnico</span></a>
+    <a href="#portal-engine"><span>06</span><span>Portal Engine operacional</span></a>
+    <a href="#portais"><span>07</span><span>Mapa dos portais</span></a>
+    <a href="#fontes"><span>08</span><span>Catálogo de feeds</span></a>
+    <a href="#prompts"><span>09</span><span>Banco de prompts</span></a>
+    <a href="#workflows"><span>10</span><span>Workflows</span></a>
+    <a href="#camadas"><span>11</span><span>Arquitetura</span></a>
+    <a href="#checklist"><span>12</span><span>Checklist mestre</span></a>
+    <a href="#riscos"><span>13</span><span>Riscos</span></a>
+    <a href="#confirmar"><span>14</span><span>Pontos a confirmar</span></a>
+    <a href="#roadmap"><span>15</span><span>Roadmap</span></a>
+  </nav>
+  <div class="side-card"><b>Natureza do arquivo</b><p>HTML único, estático, sem backend, sem banco, sem chamadas externas obrigatórias além da fonte.</p></div>
+</aside>
+
+<main>
+<section class="hero" id="topo">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">Documentação interna · mídia programática · SEO infrastructure</div>
+      <h1>PEG <span>ECOSYSTEM</span></h1>
+      <p>Superdocumentação visual dos sistemas que sustentam a operação ThePeg: RSSPRIME para agregação e Superfeeds, PEG-NewsMachine/MN26 para produção editorial automatizada, PEG Portal Engine para provisionamento WordPress e a camada estratégica de portais digitais orientados a SEO, tráfego orgânico e monetização.</p>
+    </div>
+    <aside class="hero-panel">
+      <div>
+        <div class="hp-label">Tese operacional</div>
+        <h3>De portais isolados para uma fábrica documentada de ativos digitais.</h3>
+        <p>Esta versão v0.3 aumenta profundidade documental: módulos, fluxos reais, feeds, dependências, prompts, riscos e pontos a confirmar por sistema.</p>
+      </div>
+      <div class="hp-row">
+        <div class="hp-cell"><b>RSSPRIME</b><span>entrada</span></div>
+        <div class="hp-cell"><b>MN26</b><span>produção</span></div>
+        <div class="hp-cell"><b>Portal Engine</b><span>setup</span></div>
+        <div class="hp-cell"><b>ThePeg</b><span>holding</span></div>
+      </div>
+    </aside>
+  </div>
+  <div class="summary-grid">
+    <div class="kpi"><div class="kpi-num">03</div><div class="kpi-label">Programas</div><div class="kpi-desc">RSSPRIME, MN26 e PEG Portal Engine.</div></div>
+    <div class="kpi"><div class="kpi-num">90±</div><div class="kpi-label">Fontes</div><div class="kpi-desc">Coleta multi-fonte e multi-idioma no RSSPRIME.</div></div>
+    <div class="kpi"><div class="kpi-num">28</div><div class="kpi-label">Tópicos</div><div class="kpi-desc">Feeds por tópico com RSS/Atom e Superfeed.</div></div>
+    <div class="kpi"><div class="kpi-num">15m</div><div class="kpi-label">MN26</div><div class="kpi-desc">Ciclo editorial recorrente do pipeline.</div></div>
+    <div class="kpi"><div class="kpi-num">30m</div><div class="kpi-label">RSSPRIME</div><div class="kpi-desc">Scheduler de coleta e processamento.</div></div>
+    <div class="kpi"><div class="kpi-num">JSON</div><div class="kpi-label">Profiles</div><div class="kpi-desc">Configuração declarativa para portais.</div></div>
+  </div>
+</section>
+
+<section class="section" id="visao">
+  <div class="section-head"><div><div class="s-label">01 · Visão Geral</div><h2>O que é o PEG Ecosystem</h2></div><div class="s-note">Documento de entendimento</div></div>
+  <p class="lead">O PEG Ecosystem é uma arquitetura operacional para construir, alimentar, publicar, indexar e monetizar portais digitais de nicho. Ele combina softwares próprios, rotinas editoriais automatizadas, fontes externas, prompts, WordPress e uma tese de holding de mídia digital.</p>
+  <div class="grid-3">
+    <div class="card"><div class="mini">Tese</div><h3>Conteúdo como capital</h3><p>Cada post, cluster, categoria, página evergreen e portal é tratado como ativo que pode acumular tráfego, autoridade, receita e valor estratégico ao longo do tempo.</p><div class="badges"><span class="badge red">SEO</span><span class="badge">Compounding</span></div></div>
+    <div class="card"><div class="mini">Alavancagem</div><h3>Infraestrutura como vantagem</h3><p>O diferencial não é apenas publicar muito. É reduzir custo marginal com fontes, deduplicação, IA, publicação, indexação, prompts e provisionamento padronizado.</p><div class="badges"><span class="badge red">Sistema</span><span class="badge">Escala</span></div></div>
+    <div class="card"><div class="mini">Portfólio</div><h3>Multiportal por desenho</h3><p>TheNerd, AEconomia, AchouImovel e futuros nichos devem operar com a mesma base conceitual: fonte, pipeline, WordPress, SEO e monetização.</p><div class="badges"><span class="badge red">Holding</span><span class="badge">Multi-nicho</span></div></div>
+  </div>
+  <div class="quote"><p><b>Leitura executiva:</b> a peça central não é um único site. É a capacidade de repetir uma operação editorial automatizada em múltiplas verticais, com documentação, governança e templates reaproveitáveis.</p></div>
+</section>
+
+<section class="section" id="mapa">
+  <div class="section-head"><div><div class="s-label">02 · Mapa do Ecossistema</div><h2>Como as peças se conectam</h2></div><div class="s-note">Entrada → processo → saída</div></div>
+  <p class="lead">A operação tem duas linhas principais: a linha editorial, que transforma fontes externas em posts publicados; e a linha de provisionamento, que prepara WordPress novos para operar como portais editoriais.</p>
+  <div class="diagram"><div class="diagram-title">Fluxo macro editorial</div><div class="diagram-grid">
+    <div class="dbox"><h4>Fontes</h4><p>RSS, HTML, sitemaps, fontes nacionais, internacionais e fontes especializadas por nicho.</p></div>
+    <div class="dbox"><h4>RSSPRIME</h4><p>Coleta, normaliza, deduplica, agrupa por tópico e gera Superfeeds com metadados.</p></div>
+    <div class="dbox"><h4>MN26</h4><p>Consome feeds, extrai páginas, reescreve com IA, estrutura SEO e publica no WordPress.</p></div>
+    <div class="dbox"><h4>WordPress</h4><p>Recebe posts, categorias, imagens, HTML sanitizado e metadados para indexação.</p></div>
+    <div class="dbox"><h4>Monetização</h4><p>AdSense, afiliados, programmatic ads, leads, produtos próprios e possíveis SaaS.</p></div>
+  </div></div>
+  <div class="flow">
+    <div class="step"><div class="step-num">01</div><div class="step-title">Fonte</div><div class="step-desc">Origem editorial externa.</div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">RSSPRIME</div><div class="step-desc">Agregação e cluster.</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Superfeed</div><div class="step-desc">Feed enriquecido por tópico.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">MN26</div><div class="step-desc">Pipeline editorial.</div></div>
+    <div class="step"><div class="step-num">05</div><div class="step-title">WordPress</div><div class="step-desc">Publicação e SEO.</div></div>
+    <div class="step"><div class="step-num">06</div><div class="step-title">Indexação</div><div class="step-desc">Sitemap, IndexNow e APIs.</div></div>
+    <div class="step"><div class="step-num">07</div><div class="step-title">Tráfego</div><div class="step-desc">Busca orgânica e descoberta.</div></div>
+  </div>
+  <div class="note"><b>Linha paralela:</b> o PEG Portal Engine não instala WordPress nem publica notícias. Ele configura um WordPress já criado no CloudPanel: plugins, opções básicas, páginas, categorias, SEO técnico, testes de conexão e relatório final.</div>
+</section>
+
+<section class="section" id="programas">
+  <div class="section-head"><div><div class="s-label">03 · Programas Principais</div><h2>Os três motores do ecossistema</h2></div><div class="s-note">Resumo consolidado</div></div>
+  <div class="grid-3">
+    <div class="card dark"><div class="mini">01 · Entrada editorial</div><h3>RSSPRIME</h3><p>Agregador multi-fonte e multi-idioma que coleta cerca de 90 portais, deduplica, organiza tópicos e entrega RSS/Atom e Superfeeds.</p><ul><li>Entrada: RSS, Atom, HTML/scraping e fontes por seção.</li><li>Processo: scheduler, scraper factory, feed processor, store SQLite e clustering.</li><li>Saída: feeds por fonte, feeds por tópico e Superfeeds.</li><li>Diferencial: clusters multi-fonte, pesos editoriais e integração com MN26.</li></ul><div class="badges"><span class="badge red">Scheduler 30m</span><span class="badge">SQLite</span><span class="badge">Superfeed</span></div></div>
+    <div class="card dark"><div class="mini">02 · Produção editorial</div><h3>PEG-NewsMachine / MN26</h3><p>Esteira editorial automatizada que consome feeds, extrai conteúdo, reescreve com IA, aplica SEO, publica no WordPress e aciona indexação.</p><ul><li>Entrada: RSSPRIME Superfeed + fallbacks + config YAML.</li><li>Processo: fila, extractor, Gemini, sanitização HTML, WordPress client e indexador.</li><li>Saída: posts publicados, logs, registros locais e metadados SEO.</li><li>Diferencial: preferência operacional pelo Superfeed e pós-publicação robusta.</li></ul><div class="badges"><span class="badge red">Scheduler 15m</span><span class="badge">Gemini</span><span class="badge">WP REST</span></div></div>
+    <div class="card dark"><div class="mini">03 · Provisionamento</div><h3>PEG Portal Engine</h3><p>Sistema local em Python para configurar WordPress recém-criado no CloudPanel e transformá-lo em portal editorial pronto.</p><ul><li>Entrada: domínio, nicho, WordPress, SSH, Application Password e profile JSON.</li><li>Processo: SSH/WP-CLI, REST API, plugins, páginas, categorias, SEO e post teste.</li><li>Saída: portal configurado e relatório Markdown.</li><li>Diferencial: padronização para lançar dezenas de portais sem retrabalho.</li></ul><div class="badges"><span class="badge red">Local Flask</span><span class="badge">WP-CLI</span><span class="badge">JSON</span></div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Programa</th><th>Função primária</th><th>Entrada</th><th>Saída</th><th>Fragilidade principal</th></tr></thead><tbody>
+    <tr><td>RSSPRIME</td><td>Agregação e clusterização editorial.</td><td>Fontes RSS/HTML, tópicos e scheduler.</td><td>Feeds e Superfeeds consumíveis pelo MN26.</td><td>Qualidade das fontes, bloqueios, duplicidades e manutenção de slugs.</td></tr>
+    <tr><td>MN26</td><td>Produção e publicação automatizada.</td><td>Superfeed, fallbacks, configs YAML e prompts.</td><td>Posts publicados, SEO, imagens, logs e indexação.</td><td>Acoplamento alto, status de fila, integrações externas e dashboard parcial.</td></tr>
+    <tr><td>PEG Portal Engine</td><td>Setup e padronização de WordPress.</td><td>Dados do portal, SSH, WP REST, WP-CLI e JSONs.</td><td>Portal pronto, páginas, categorias, plugins e relatório.</td><td>Depende de WordPress já instalado e credenciais corretas.</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="section" id="rssprime">
+  <div class="section-head"><div><div class="s-label">04 · RSSPRIME Profundo</div><h2>Agregação, feeds e Superfeed</h2></div><div class="s-note">Entrada editorial</div></div>
+  <p class="lead">O RSSPRIME é a camada de abastecimento editorial. Ele coleta fontes, deduplica por múltiplos critérios, processa tópicos e entrega feeds tradicionais e Superfeeds enriquecidos para consumo por CMS ou pelo MN26.</p>
+  <div class="grid-4">
+    <div class="card"><div class="mini">Coleta</div><h3>Multi-fonte</h3><p>Cerca de 90 portais em PT-BR, EN, ES, FR, DE e IT. A origem pode ser RSS oficial ou scraping HTML.</p></div>
+    <div class="card"><div class="mini">Dedup</div><h3>Semântica + URL</h3><p>Deduplicação por URL exata, URL canônica e similaridade de título, reduzindo repetição de eventos.</p></div>
+    <div class="card"><div class="mini">Tópicos</div><h3>28 temas</h3><p>Feeds agregados por tópico com RSS/Atom, organizando fontes por categoria editorial.</p></div>
+    <div class="card"><div class="mini">Superfeed</div><h3>Evento consolidado</h3><p>Combina clusters multi-fonte e singletons em RSS cronológico com namespace de metadados.</p></div>
+  </div>
+  <div class="diagram"><div class="diagram-title">Arquitetura operacional do RSSPRIME</div><div class="diagram-grid">
+    <div class="dbox"><h4>Scheduler</h4><p>Roda ciclos de coleta e processamento, com janela típica de 30 minutos.</p></div>
+    <div class="dbox"><h4>Scraper Factory</h4><p>Busca conteúdo via RSS/Atom ou HTML conforme a fonte configurada.</p></div>
+    <div class="dbox"><h4>FeedProcessor</h4><p>Deduplica, ranqueia e aplica pesos editoriais por nicho.</p></div>
+    <div class="dbox"><h4>Store SQLite</h4><p>Persiste artigos, tópicos processados, clusters e itens brutos.</p></div>
+    <div class="dbox"><h4>Server Flask</h4><p>Expõe dashboard, feeds por tópico e rotas Superfeed.</p></div>
+  </div></div>
+  <div class="table-wrap"><table><thead><tr><th>Família de feed</th><th>Rota</th><th>Origem</th><th>Formato</th><th>Uso</th></tr></thead><tbody>
+    <tr><td>Fonte/Seção</td><td><code>/feeds/&lt;source&gt;/&lt;section&gt;/rss</code></td><td>Tabela articles</td><td>RSS / Atom</td><td>Visão quase direta de uma origem específica.</td></tr>
+    <tr><td>Tópico</td><td><code>/feeds/topic/&lt;topic&gt;/rss</code></td><td>processed_topics</td><td>RSS / Atom</td><td>Agregação editorial de várias fontes por tema.</td></tr>
+    <tr><td>Superfeed</td><td><code>/feeds/superfeed/&lt;topic&gt;/rss</code></td><td>processed_topics + sf_clusters + sf_raw_items</td><td>RSS</td><td>Clusters multi-fonte e singletons com metadados extras.</td></tr>
+  </tbody></table></div>
+  <div class="grid-2">
+    <div class="card"><div class="mini">Metadados do Superfeed</div><h3>Namespace sf</h3><p>O Superfeed carrega campos como event_key, multi_source, source_count, urls, topic, fonte_nome, primary_source, first_seen e last_seen. Esses campos permitem que o MN26 diferencie evento consolidado de item comum.</p><div class="badges"><span class="badge red">event_key</span><span class="badge">source_count</span><span class="badge">urls</span></div></div>
+    <div class="card"><div class="mini">Saída para MN26</div><h3>Clusters READY</h3><p>O documento de feeds descreve que clusters READY viram payloads para a fila superfeed_queue, conectando agregação com produção editorial automatizada.</p><div class="badges"><span class="badge red">READY</span><span class="badge">superfeed_queue</span></div></div>
+  </div>
+</section>
+
+<section class="section" id="mn26">
+  <div class="section-head"><div><div class="s-label">05 · MN26 Técnico</div><h2>Pipeline editorial automatizado</h2></div><div class="s-note">Produção + publicação</div></div>
+  <p class="lead">O MN26 é a esteira editorial. Ele recebe itens de feed, decide o que é novo, enfileira, extrai, reescreve, sanitiza, publica no WordPress e aciona indexação. A documentação técnica aponta uma base funcional, mas ainda com dívida arquitetural, acoplamento e riscos de fila/status.</p>
+  <div class="timeline">
+    <div class="trow"><div class="phase">Boot</div><div class="detail"><h4>entrypoint.py</h4><p>Configura logging, parseia CLI, carrega projeto, valida ambiente, inicializa banco e roda modo único ou scheduler.</p></div><div class="owner">Lifecycle</div></div>
+    <div class="trow"><div class="phase">Ingestão</div><div class="detail"><h4>FeedReader + Store</h4><p>Lê RSS, sitemap ou Superfeed, normaliza itens e insere novos artigos em SQLite.</p></div><div class="owner">app/feeds.py</div></div>
+    <div class="trow"><div class="phase">Fila</div><div class="detail"><h4>ArticleQueue</h4><p>Enfileira itens elegíveis e aplica prioridade operacional: Superfeed acima de fallback e depois FIFO.</p></div><div class="owner">task_queue</div></div>
+    <div class="trow"><div class="phase">Extração</div><div class="detail"><h4>ContentExtractor</h4><p>Busca HTML, tenta Trafilatura quando disponível e usa fallback de BeautifulSoup/regras por domínio.</p></div><div class="owner">extractor</div></div>
+    <div class="trow"><div class="phase">IA</div><div class="detail"><h4>AIProcessor + Gemini</h4><p>Reescreve material, gera estrutura editorial, SEO pack e metadados com controle de chaves, backoff e rate limiting.</p></div><div class="owner">ai_* modules</div></div>
+    <div class="trow"><div class="phase">WordPress</div><div class="detail"><h4>WordPressClient</h4><p>Cria post, resolve tags/categorias, faz upload de mídia, aplica metadados e sanitização pós-publicação.</p></div><div class="owner">wordpress.py</div></div>
+    <div class="trow"><div class="phase">Indexação</div><div class="detail"><h4>Indexing service</h4><p>Dispara Google Indexing, IndexNow, sitemap/news sitemap e registros locais para evitar repetição.</p></div><div class="owner">indexing</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Módulo</th><th>Responsabilidade</th><th>Observação documental</th></tr></thead><tbody>
+    <tr><td>app/entrypoint.py</td><td>Boot, argparse, APScheduler e lifecycle.</td><td>Ponto de entrada real da execução.</td></tr>
+    <tr><td>app/pipeline.py</td><td>Orquestra ingestão, worker e processamento.</td><td>Arquivo crítico e concentrador de lógica.</td></tr>
+    <tr><td>app/feeds.py</td><td>RSS, sitemap e Superfeed RSSPRIME.</td><td>Entende namespace do Superfeed e tipos de feed.</td></tr>
+    <tr><td>app/store.py</td><td>CRUD SQLite para seen_articles, posts e pipeline_state.</td><td>Base para dedup, status e persistência.</td></tr>
+    <tr><td>app/task_queue.py</td><td>Fila persistente SQLite com prioridade.</td><td>Peça sensível para evitar backlog silencioso.</td></tr>
+    <tr><td>app/extractor.py</td><td>Download e extração de conteúdo HTML.</td><td>Camada frágil por depender de páginas externas.</td></tr>
+    <tr><td>app/ai_processor.py</td><td>Interface Gemini: prompts, batch, parse e retry.</td><td>Centro de transformação editorial.</td></tr>
+    <tr><td>app/html_utils.py</td><td>Limpeza HTML, CTA e blocos Gutenberg.</td><td>Remove resíduos, markup ruim e incompatibilidades.</td></tr>
+    <tr><td>app/wordpress.py</td><td>REST WordPress: posts, mídia, tags e SEO.</td><td>Publicação e pós-publicação.</td></tr>
+    <tr><td>app/indexing_service.py</td><td>Google Indexing, IndexNow e sitemap ping.</td><td>Camada ativa, mas com sinais de integrações obsoletas/config incompleta.</td></tr>
+  </tbody></table></div>
+  <div class="grid-2">
+    <div class="card"><div class="mini">Deduplicação no MN26</div><h3>Quatro travas</h3><p>O MN26 usa event_key para clusters, source_id + external_id, canonical_url e normalized_title com fuzzy match. A política coverage_map faz o Superfeed vencer itens fallback cobertos pelo mesmo evento.</p></div>
+    <div class="card"><div class="mini">Risco confirmado</div><h3>Status QUEUED</h3><p>A documentação indica risco de artigos marcados como QUEUED não voltarem ao processamento se a busca futura não considerar esse status. Isso gera backlog silencioso.</p></div>
+  </div>
+</section>
+
+<section class="section" id="portal-engine">
+  <div class="section-head"><div><div class="s-label">06 · PEG Portal Engine Operacional</div><h2>Provisionamento de portais WordPress</h2></div><div class="s-note">Setup padronizado</div></div>
+  <p class="lead">O PEG Portal Engine é um painel local em Python/Flask para configurar WordPress já instalado no CloudPanel. Ele automatiza a camada repetitiva: plugins, opções básicas, SEO técnico, páginas institucionais, categorias, conteúdo inicial e relatório final.</p>
+  <div class="grid-3">
+    <div class="card"><div class="mini">Stack</div><h3>Local-first</h3><p>Python 3.12+, Flask 3, Paramiko, Requests, python-dotenv, Bootstrap 5 e arquivos JSON. Não usa banco de dados.</p></div>
+    <div class="card"><div class="mini">Canais</div><h3>SSH + REST</h3><p>SSH/WP-CLI executa tarefas no servidor. WordPress REST API com Application Password valida e cria recursos no WP.</p></div>
+    <div class="card"><div class="mini">Saída</div><h3>Relatório Markdown</h3><p>Ao final, gera relatório em logs com ações feitas e pendências humanas, como etapas manuais do Rank Math.</p></div>
+  </div>
+  <div class="flow">
+    <div class="step"><div class="step-num">01</div><div class="step-title">WordPress</div><div class="step-desc">Criado manualmente no CloudPanel.</div></div>
+    <div class="step"><div class="step-num">02</div><div class="step-title">Profile JSON</div><div class="step-desc">Slug, domínio, nicho, paths e SEO.</div></div>
+    <div class="step"><div class="step-num">03</div><div class="step-title">Credenciais</div><div class="step-desc">SSH, WP REST e Application Password.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Validações</div><div class="step-desc">SSH, REST API, WP-CLI e Redis.</div></div>
+    <div class="step"><div class="step-num">05</div><div class="step-title">Setup</div><div class="step-desc">Plugins, configs, categorias e páginas.</div></div>
+    <div class="step"><div class="step-num">06</div><div class="step-title">Teste</div><div class="step-desc">Post inicial e verificação visual.</div></div>
+    <div class="step"><div class="step-num">07</div><div class="step-title">Relatório</div><div class="step-desc">Markdown de execução e pendências.</div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Arquivo/Pasta</th><th>Função</th><th>Uso na operação</th></tr></thead><tbody>
+    <tr><td>app.py</td><td>Painel Flask + endpoints AJAX.</td><td>Interface local para rodar validações e setup.</td></tr>
+    <tr><td>config/plugins.json</td><td>Lista de plugins obrigatórios e opcionais.</td><td>Padroniza o stack WP por portal.</td></tr>
+    <tr><td>config/categories.json</td><td>Categorias por nicho.</td><td>Cria taxonomia editorial inicial.</td></tr>
+    <tr><td>config/pages.json</td><td>Páginas institucionais.</td><td>Gera Sobre, Contato, Política e páginas obrigatórias.</td></tr>
+    <tr><td>config/sites/*.json</td><td>Site Profiles declarativos.</td><td>Evita preencher formulário repetidamente.</td></tr>
+    <tr><td>provisioner/ssh_client.py</td><td>Camada Paramiko.</td><td>Valida e executa comandos no VPS.</td></tr>
+    <tr><td>provisioner/wpcli.py</td><td>Comandos WP-CLI via SSH.</td><td>Instala/ativa plugins e valida WordPress.</td></tr>
+    <tr><td>provisioner/wp_rest.py</td><td>WordPress REST API.</td><td>Cria recursos e valida Application Password.</td></tr>
+    <tr><td>provisioner/tasks.py</td><td>Orquestrador de etapas.</td><td>Executa o setup completo em sequência.</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="section" id="portais">
+  <div class="section-head"><div><div class="s-label">07 · Mapa Real dos Portais</div><h2>Ativos digitais do portfólio</h2></div><div class="s-note">Atual + expansão</div></div>
+  <p class="lead">Os portais são as propriedades finais onde conteúdo, SEO, monetização e autoridade acumulam. Cada portal precisa ter nicho, fontes, taxonomias, estratégia editorial, prompt, arquitetura WordPress e modelo de monetização documentados.</p>
+  <div class="grid-4">
+    <div class="card"><div class="mini">Portal ativo</div><h3>TheNerd</h3><p>Entretenimento, filmes, séries, games e cultura pop. Projeto mais diretamente ligado ao MN26 e ao pipeline editorial automatizado.</p><div class="badges"><span class="badge ok">Ativo</span><span class="badge red">Entertainment</span></div></div>
+    <div class="card"><div class="mini">Portal financeiro</div><h3>AEconomia</h3><p>Finanças, economia, dinheiro e negócios. Referenciado como destino de expansão e possível adaptação da base MN26.</p><div class="badges"><span class="badge warn">Em estruturação</span><span class="badge red">Finance</span></div></div>
+    <div class="card"><div class="mini">Portal imobiliário</div><h3>AchouImovel</h3><p>Projeto híbrido: portal de conteúdo, SEO programático, geração de leads e possível SaaS/CRM para corretores.</p><div class="badges"><span class="badge warn">Estratégico</span><span class="badge red">Real Estate</span></div></div>
+    <div class="card"><div class="mini">Escala</div><h3>Futuros portais</h3><p>Saúde, jurídico, seguros, educação, tecnologia, automóveis, negócios, lifestyle, crypto e outros nichos avaliados por RPM/SEO.</p><div class="badges"><span class="badge">Pipeline</span><span class="badge red">Portfolio</span></div></div>
+  </div>
+  <div class="table-wrap"><table><thead><tr><th>Portal</th><th>Nicho</th><th>Programa mais ligado</th><th>Status documental</th><th>Próximo dado necessário</th></tr></thead><tbody>
+    <tr><td>TheNerd</td><td>Filmes, séries, games, cultura pop</td><td>MN26 + RSSPRIME</td><td>Mais documentado tecnicamente.</td><td>Confirmar domínio atual, categorias finais e fontes em produção.</td></tr>
+    <tr><td>AEconomia</td><td>Economia, finanças, dinheiro</td><td>Portal Engine + futura adaptação MN26</td><td>Referenciado em testes/estratégia.</td><td>Confirmar se há config.yaml real e pipeline próprio.</td></tr>
+    <tr><td>AchouImovel</td><td>Imóveis, guias locais, leads, SaaS</td><td>Portal Engine + SEO programático</td><td>Estratégia forte, operação a confirmar.</td><td>Mapear arquitetura pública, portal/conteúdo e CRM.</td></tr>
+    <tr><td>Outros nichos</td><td>Saúde, jurídico, seguros, auto, tech etc.</td><td>RSSPRIME + Portal Engine + MN26 white-label</td><td>Pipeline de portfólio.</td><td>Definir prioridade por RPM, risco e capacidade de fonte.</td></tr>
+  </tbody></table></div>
+</section>
+
+<section class="section" id="fontes">
+  <div class="section-head"><div><div class="s-label">08 · Catálogo de Feeds</div><h2>Fontes, tópicos e rotas</h2></div><div class="s-note">Camada de abastecimento</div></div>
+  <p class="lead">A documentação de feeds organiza o RSSPRIME em três camadas: feed individual por fonte/seção, feed agregado por tópico e Superfeed. A v0.3 transforma isso em catálogo operacional para consulta.</p>
+  <div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Padrão de URL</th><th>Exemplos</th><th>Quando usar</th></tr></thead><tbody>
+    <tr><td>Fonte/Seção</td><td><code>/feeds/&lt;source&gt;/&lt;section&gt;/rss</code><br><code>/feeds/&lt;source&gt;/&lt;section&gt;/atom</code></td><td>g1/economia, folha/politica, variety/movies</td><td>Auditoria ou consumo de uma origem específica.</td></tr>
+    <tr><td>Tópico</td><td><code>/feeds/topic/&lt;topic&gt;/rss</code><br><code>/feeds/topic/&lt;topic&gt;/atom</code></td><td>noticias_brasil, economia_politica, movies</td><td>Agregação por tema, útil para CMS ou monitoramento.</td></tr>
+    <tr><td>Superfeed</td><td><code>/feeds/superfeed/&lt;topic&gt;/rss</code></td><td>superfeed/noticias_brasil, superfeed/tv</td><td>Entrada preferencial para MN26 quando há clusterização.</td></tr>
+  </tbody></table></div>
+  <div class="grid-3">
+    <div class="card"><div class="mini">Brasil</div><h3>Notícias e economia</h3><p>Tópicos como noticias_brasil e economia_politica usam fontes como g1, folha, estadao, valor e uol.</p><div class="badges"><span class="badge red">pt-BR</span><span class="badge">news</span></div></div>
+    <div class="card"><div class="mini">Global</div><h3>Notícias internacionais</h3><p>Tópicos globais usam fontes multi-idioma como NYT, BBC, Sky News, Euronews, Reuters, DW e Le Monde.</p><div class="badges"><span class="badge red">multi</span><span class="badge">global</span></div></div>
+    <div class="card"><div class="mini">Entretenimento</div><h3>Movies, TV, games</h3><p>Camada mais ligada ao TheNerd/MN26, com Superfeed e fallbacks para alimentar produção editorial.</p><div class="badges"><span class="badge red">TheNerd</span><span class="badge">clusters</span></div></div>
+  </div>
+  <div class="note"><b>Critério editorial recomendado:</b> cada fonte precisa ter dono, tópico, idioma, prioridade, confiabilidade, método de coleta, risco de bloqueio e relação com monetização/SEO do portal final.</div>
+</section>
+
+<section class="section" id="prompts">
+  <div class="section-head"><div><div class="s-label">09 · Banco de Prompts</div><h2>Catálogo útil de prompts</h2></div><div class="s-note">Governança de IA</div></div>
+  <p class="lead">Os prompts são parte da infraestrutura. Eles precisam ser catalogados por finalidade, modelo recomendado, entrada esperada, saída esperada, risco e etapa do workflow. A v0.3 não inclui prompts gigantes; cria a taxonomia operacional.</p>
+  <div class="prompt-grid">
+    <div class="prompt-card"><code>AUDITORIA_TECNICA</code><div><h4>Auditoria de código e arquitetura</h4><p>Usado para avaliar MN26, RSSPRIME ou Portal Engine, identificar riscos, status, bugs, acoplamento e tarefas executáveis.</p></div></div>
+    <div class="prompt-card"><code>DOCUMENTACAO_EXECUTIVA</code><div><h4>Documentação estratégica</h4><p>Transforma auditorias e READMEs em docs visuais, relatórios, inventários, mapas e decisões de CTO/COO.</p></div></div>
+    <div class="prompt-card"><code>REESCRITA_SEO</code><div><h4>Reescrita jornalística</h4><p>Usado no pipeline editorial para transformar conteúdo fonte em post próprio com estrutura, SEO, título, subtítulos e metadados.</p></div></div>
+    <div class="prompt-card"><code>SEO_PROGRAMATICO</code><div><h4>Arquitetura de busca</h4><p>Cria clusters de páginas, taxonomias, intenção de busca, URLs, sitemaps e estratégia de internal linking por nicho.</p></div></div>
+    <div class="prompt-card"><code>CODEX_COPILOT</code><div><h4>Execução em código</h4><p>Prompt cirúrgico para pedir diffs, patches, testes, relatórios MD e mudanças sem reescrever módulos inteiros.</p></div></div>
+    <div class="prompt-card"><code>GEMINI_LONG_CONTEXT</code><div><h4>Leitura massiva</h4><p>Bom para anexar muitos HTMLs/MDs e pedir inventário, conflitos, lacunas e briefing consolidado.</p></div></div>
+    <div class="prompt-card"><code>LOVABLE_REPLIT</code><div><h4>Interface/protótipo</h4><p>Usado apenas se quiser transformar documentação em app/site visual. Para esta etapa, o objetivo permanece HTML estático.</p></div></div>
+    <div class="prompt-card"><code>HTML_DOC_VISUAL</code><div><h4>Superdocumentação visual</h4><p>Gera arquivos únicos, com CSS/JS internos, sidebar, cards, diagramas e aparência premium.</p></div></div>
+  </div>
+</section>
+
+<section class="section" id="workflows">
+  <div class="section-head"><div><div class="s-label">10 · Workflows Operacionais</div><h2>Passo a passo da operação</h2></div><div class="s-note">Fluxos reais + desejados</div></div>
+  <div class="grid-2">
+    <div class="card"><div class="mini">Workflow 1</div><h3>Criação de novo portal</h3><p>Domínio → WordPress no CloudPanel → profile JSON → validações SSH/REST/WP-CLI → setup de plugins → páginas → categorias → SEO base → post teste → relatório.</p></div>
+    <div class="card"><div class="mini">Workflow 2</div><h3>Produção editorial</h3><p>Fonte → RSSPRIME → Superfeed → MN26 → fila → extração → Gemini → HTML/SEO → WordPress → indexação → monitoramento.</p></div>
+    <div class="card"><div class="mini">Workflow 3</div><h3>Expansão de portfólio</h3><p>Escolha do nicho → análise de RPM/risco → fontes → arquitetura WP → prompt editorial → setup → publicação inicial → indexação → monetização.</p></div>
+    <div class="card"><div class="mini">Workflow 4</div><h3>Operação diária</h3><p>Monitorar feeds → checar fila → validar posts publicados → acompanhar indexação → revisar erros → ajustar prompts → atualizar docs → escalar com controle.</p></div>
+    <div class="card"><div class="mini">Workflow 5</div><h3>SEO e indexação</h3><p>Post publicado → Yoast/RankMath → sitemap/news sitemap → IndexNow → Search Console → logs locais → revisão de cobertura.</p></div>
+    <div class="card"><div class="mini">Workflow 6</div><h3>Documentação e prompts</h3><p>Problema → prompt → IA → relatório HTML/MD → validação → refinamento → versão mestre → changelog.</p></div>
+  </div>
+</section>
+
+<section class="section" id="camadas">
+  <div class="section-head"><div><div class="s-label">11 · Arquitetura em Camadas</div><h2>Onde cada coisa vive</h2></div><div class="s-note">Input · Process · Output</div></div>
+  <div class="layer-grid">
+    <div class="layer"><div class="mini">Input Layer</div><h3>Entradas</h3><ul><li>RSS/Atom</li><li>Superfeeds</li><li>Sitemaps</li><li>Fontes HTML</li><li>Domínios</li><li>Site Profiles JSON</li><li>Prompts</li></ul></div>
+    <div class="layer"><div class="mini">Process Layer</div><h3>Processamento</h3><ul><li>RSSPRIME</li><li>MN26</li><li>PEG Portal Engine</li><li>Gemini</li><li>Extratores</li><li>WP-CLI</li><li>WordPress REST API</li></ul></div>
+    <div class="layer"><div class="mini">Output Layer</div><h3>Resultados</h3><ul><li>Feeds</li><li>Superfeeds</li><li>Posts publicados</li><li>Portais configurados</li><li>Páginas institucionais</li><li>Sitemaps</li><li>Relatórios Markdown</li></ul></div>
+    <div class="layer"><div class="mini">Monetization</div><h3>Receita</h3><ul><li>AdSense</li><li>Programmatic ads</li><li>Afiliados</li><li>Leads</li><li>Produtos próprios</li><li>SaaS</li><li>Parcerias estratégicas</li></ul></div>
+    <div class="layer"><div class="mini">Observability</div><h3>Controle</h3><ul><li>Logs</li><li>Dashboards</li><li>Checklists</li><li>Status de fila</li><li>Erros</li><li>Auditorias</li><li>Documentação versionada</li></ul></div>
+  </div>
+</section>
+
+<section class="section" id="checklist">
+  <div class="section-head"><div><div class="s-label">12 · Checklist Mestre Executável</div><h2>O que precisa estar validado</h2></div><div class="s-note">Não funcional, mas operacional</div></div>
+  <div class="check-grid">
+    <div class="check"><b>RSSPRIME:</b> listar fontes ativas, fontes removidas, slugs alternativos, tópicos e status de coleta.</div>
+    <div class="check"><b>RSSPRIME:</b> validar feed por fonte, feed por tópico e Superfeed para cada nicho prioritário.</div>
+    <div class="check"><b>RSSPRIME:</b> documentar critérios de clusterização, READY e envio para fila.</div>
+    <div class="check"><b>MN26:</b> confirmar projeto ativo, config.yaml, sources.yaml e variáveis de ambiente críticas.</div>
+    <div class="check"><b>MN26:</b> validar fluxo NEW → QUEUED/PROCESSING → PUBLISHED/FAILED/FAILED_PERMANENT.</div>
+    <div class="check"><b>MN26:</b> auditar health do worker, db_path, fila persistente e dashboard.</div>
+    <div class="check"><b>Portal Engine:</b> validar SSH, REST API, WP-CLI, Redis e Application Password.</div>
+    <div class="check"><b>Portal Engine:</b> revisar plugins.json, categories.json, pages.json, niches.json e profiles.</div>
+    <div class="check"><b>Portais:</b> documentar domínio, nicho, stack WP, fontes, taxonomias e monetização.</div>
+    <div class="check"><b>Prompts:</b> catalogar prompt editorial, prompt SEO, prompt auditoria e prompt de patch por sistema.</div>
+    <div class="check"><b>SEO:</b> validar sitemap, news sitemap, robots, canonical, schema e indexação.</div>
+    <div class="check"><b>Governança:</b> manter README, CHANGELOG, auditorias e pontos a confirmar por versão.</div>
+  </div>
+</section>
+
+<section class="section" id="riscos">
+  <div class="section-head"><div><div class="s-label">13 · Riscos e Pendências</div><h2>Riscos técnicos, operacionais e estratégicos</h2></div><div class="s-note">Prioridade objetiva</div></div>
+  <div class="risk"><div class="sev high">Alta</div><div class="body"><h4>Backlog silencioso no MN26</h4><p>Artigos em status QUEUED podem não ser reprocessados se a seleção de trabalhos não incluir esse estado. Precisa validação no código atual.</p></div></div>
+  <div class="risk"><div class="sev high">Alta</div><div class="body"><h4>Acoplamento em arquivos críticos</h4><p>pipeline.py, extractor.py, wordpress.py e indexing_service.py concentram responsabilidades, elevando risco de regressão.</p></div></div>
+  <div class="risk"><div class="sev mid">Média</div><div class="body"><h4>Dashboard parcial</h4><p>Documentos indicam telas/controles não necessariamente ligados a backend real. A documentação deve separar visual de operação efetiva.</p></div></div>
+  <div class="risk"><div class="sev mid">Média</div><div class="body"><h4>Indexação com integrações obsoletas</h4><p>Alguns pings e endpoints podem estar depreciados ou mal configurados. Precisa separar o que funciona do que é legado.</p></div></div>
+  <div class="risk"><div class="sev mid">Média</div><div class="body"><h4>Fontes bloqueadas ou instáveis</h4><p>Fontes externas podem mudar HTML, bloquear scraping, remover RSS ou gerar conteúdo duplicado/fraco.</p></div></div>
+  <div class="risk"><div class="sev low">Baixa</div><div class="body"><h4>Documentação duplicada</h4><p>Há arquivos repetidos por versão. A superdocumentação deve apontar fonte de verdade por sistema.</p></div></div>
+</section>
+
+<section class="section" id="confirmar">
+  <div class="section-head"><div><div class="s-label">14 · Pontos a Confirmar por Sistema</div><h2>O que ainda não deve ser tratado como verdade final</h2></div><div class="s-note">Controle de incerteza</div></div>
+  <div class="grid-3">
+    <div class="card"><div class="mini">RSSPRIME</div><h3>Pontos a confirmar</h3><ul><li>Lista final de fontes realmente ativas em produção.</li><li>Quais fontes estão bloqueadas, substituídas ou degradadas.</li><li>Critério atual exato para cluster READY.</li><li>Domínio e rotas públicas finais do RSSPRIME.</li></ul></div>
+    <div class="card"><div class="mini">MN26</div><h3>Pontos a confirmar</h3><ul><li>Status atual do bug QUEUED.</li><li>Quais integrações de indexação estão funcionando.</li><li>Se AEconomia possui config.yaml real.</li><li>O que é ativo, legado ou experimental no repo.</li></ul></div>
+    <div class="card"><div class="mini">Portal Engine</div><h3>Pontos a confirmar</h3><ul><li>Lista real de 14 etapas do setup completo.</li><li>Plugins obrigatórios finais por nicho.</li><li>Como lidar com RankMath/Yoast por portal.</li><li>Política de segurança para senhas e profiles JSON.</li></ul></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="mini">Portais</div><h3>Status real</h3><p>Confirmar quais domínios já estão no ar, quais têm WordPress, quais recebem pipeline e quais ainda são apenas estratégia.</p></div>
+    <div class="card"><div class="mini">Monetização</div><h3>Receita e RPM</h3><p>Separar o que é tese, projeção e dado real de AdSense, afiliados, leads e oportunidades SaaS.</p></div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="section-head"><div><div class="s-label">15 · Roadmap</div><h2>Próximas versões da documentação</h2></div><div class="s-note">v0.4 → v1.0</div></div>
+  <div class="grid-4">
+    <div class="card"><div class="mini">Agora · v0.4</div><h3>Fonte de verdade</h3><p>Escolher arquivos canônicos por sistema, remover duplicidade e marcar versões arquivadas.</p></div>
+    <div class="card"><div class="mini">Próxima fase · v0.5</div><h3>Inventário operacional</h3><p>Adicionar tabelas completas de fontes, domínios, configs, plugins, prompts e status dos portais.</p></div>
+    <div class="card"><div class="mini">Escala · v0.8</div><h3>Template por nicho</h3><p>Criar modelos para entretenimento, finanças, imóveis, saúde, jurídico, seguros, educação e automóveis.</p></div>
+    <div class="card"><div class="mini">Maturidade · v1.0</div><h3>Wiki viva</h3><p>Transformar este HTML em central versionada: GitHub Pages, Notion, docs internos ou dashboard estático.</p></div>
+  </div>
+  <div class="footer"><div>PEG Ecosystem — Superdocumentação Visual v0.3 documental</div><div>Arquivo estático · Sem backend · Sem integrações reais</div></div>
+</section>
+
+</main>
+</div>
+<script>
+const progress=document.getElementById('progress');
+const navLinks=[...document.querySelectorAll('#nav a')];
+const sections=navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+function onScroll(){
+  const h=document.documentElement;
+  progress.style.width=((h.scrollTop)/(h.scrollHeight-h.clientHeight)*100)+'%';
+  let current=sections[0]?.id;
+  for(const s of sections){ if(s.getBoundingClientRect().top<140) current=s.id; }
+  navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current));
+}
+document.addEventListener('scroll',onScroll,{passive:true});onScroll();
+</script>
+</body>
+</html>

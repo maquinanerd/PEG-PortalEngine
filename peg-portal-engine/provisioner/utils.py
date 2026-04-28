@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from .logger import get_logger
+from .logger import get_logger, sanitize_sensitive_data
 
 
 _logger = get_logger()
@@ -992,7 +992,8 @@ def gerar_relatorio(contexto: dict) -> Path:
     linhas.append("")
 
     try:
-        caminho.write_text("\n".join(linhas), encoding="utf-8")
+        conteudo_sanitizado = sanitize_sensitive_data("\n".join(linhas))
+        caminho.write_text(conteudo_sanitizado, encoding="utf-8")
         _logger.info("Relatorio gerado: %s", caminho)
     except OSError as exc:
         _logger.error("Falha ao gravar relatorio em %s: %s", caminho, exc)

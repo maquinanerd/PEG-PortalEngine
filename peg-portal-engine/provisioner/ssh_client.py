@@ -11,6 +11,7 @@ Nunca loga senhas ou chaves.
 
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 from typing import Optional
@@ -24,10 +25,12 @@ from paramiko.ssh_exception import (
     SSHException,
 )
 
-from .logger import get_logger
+from .logger import get_logger, sanitize_sensitive_data
 
 
 _logger = get_logger()
+
+_DEFAULT_TIMEOUT = int(os.environ.get("PEG_ENGINE_SSH_TIMEOUT", "30"))
 
 _MAX_RETRIES = 3
 _RETRY_INTERVAL_SEC = 5
@@ -66,7 +69,7 @@ def conectar(
     user: str,
     password: Optional[str] = None,
     key_path: Optional[str] = None,
-    timeout: int = 30,
+    timeout: int = _DEFAULT_TIMEOUT,
 ) -> paramiko.SSHClient:
     """
     Abre uma conexao SSH com retry automatico (3 tentativas, 5s de intervalo).
@@ -154,7 +157,7 @@ def conectar(
     raise ultima_excecao
 
 
-def executar(client: paramiko.SSHClient, comando: str, timeout: int = 60) -> dict:
+def executar(client: paramiko.SSHClient, comando: str, timeout: int = _DEFAULT_TIMEOUT) -> dict:
     """
     Executa um comando remoto e retorna {stdout, stderr, exit_code}.
     Nunca lanca excecao: erros sao retornados em campos do dict.
@@ -188,8 +191,8 @@ def executar(client: paramiko.SSHClient, comando: str, timeout: int = 60) -> dic
         exit_code = stdout.channel.recv_exit_status()
 
         return {
-            "stdout": out_bytes.decode("utf-8", errors="replace"),
-            "stderr": err_bytes.decode("utf-8", errors="replace"),
+            "stdout": sanitize_sensitive_data(out_bytes.decode("utf-8", errors="replace")),
+            "stderr": sanitize_sensitive_data(err_bytes.decode("utf-8", errors="replace")),
             "exit_code": int(exit_code),
         }
     except SSHException as exc:

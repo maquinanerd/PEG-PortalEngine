@@ -8,6 +8,7 @@ Camada REST API do WordPress.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Optional
 from urllib.parse import urljoin
@@ -15,11 +16,11 @@ from urllib.parse import urljoin
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .logger import get_logger
+from .logger import get_logger, sanitize_sensitive_data
 
 
 _logger = get_logger()
-_HTTP_TIMEOUT = 30
+_HTTP_TIMEOUT = int(os.environ.get("PEG_ENGINE_REST_TIMEOUT", "30"))
 
 
 def _normalizar_app_password(senha: str) -> str:
@@ -126,6 +127,11 @@ class WPRest:
 
         try:
             data = resp.json()
+            if isinstance(data, dict):
+                # Sanitiza os valores em string do JSON apenas nas chaves principais
+                for k, v in data.items():
+                    if isinstance(v, str):
+                        data[k] = sanitize_sensitive_data(v)
         except ValueError:
             data = None
 
@@ -139,7 +145,7 @@ class WPRest:
             "status": resp.status_code,
             "data": data,
             "msg": msg_erro or f"HTTP {resp.status_code}",
-            "raw_text": resp.text[:500],
+            "raw_text": sanitize_sensitive_data(resp.text[:500]),
         }
 
     # ------------------------------------------------------------------ #

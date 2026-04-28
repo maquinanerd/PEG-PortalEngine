@@ -17,7 +17,7 @@ from typing import Any, Optional
 
 import paramiko
 
-from .logger import get_logger
+from .logger import get_logger, sanitize_sensitive_data
 from .ssh_client import executar
 
 
@@ -94,7 +94,7 @@ class WPCLI:
         return {
             "ok": False,
             "versao": None,
-            "msg": f"Falha ao detectar WP-CLI: {res['stderr'].strip() or res['stdout'].strip()}",
+            "msg": f"Falha ao detectar WP-CLI: {sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     def verificar_wp(self) -> dict:
@@ -107,7 +107,7 @@ class WPCLI:
             return {
                 "ok": False,
                 "msg": f"WP nao encontrado em {self.wp_path}: "
-                       f"{res_v['stderr'].strip() or res_v['stdout'].strip()}",
+                       f"{sanitize_sensitive_data(res_v['stderr'].strip() or res_v['stdout'].strip())}",
             }
         versao = res_v["stdout"].strip()
 
@@ -137,7 +137,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"Redis indisponivel: exit={res['exit_code']} "
-                   f"stdout={res['stdout'].strip()} stderr={res['stderr'].strip()}",
+                   f"stdout={sanitize_sensitive_data(res['stdout'].strip())} stderr={sanitize_sensitive_data(res['stderr'].strip())}",
         }
 
     # ------------------------------------------------------------------ #
@@ -154,7 +154,7 @@ class WPCLI:
         if res["exit_code"] != 0:
             _logger.warning(
                 "WP-CLI: falha ao listar plugins ativos — %s",
-                res["stderr"].strip(),
+                sanitize_sensitive_data(res["stderr"].strip()),
             )
             return []
         dados = self._safe_json_loads(res["stdout"])
@@ -173,7 +173,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha ao instalar {slug}: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     def ativar_plugin(self, slug: str) -> dict:
@@ -187,7 +187,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha ao ativar {slug}: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     def instalar_e_ativar(self, slug: str) -> dict:
@@ -204,7 +204,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha ao instalar+ativar {slug}: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     # ------------------------------------------------------------------ #
@@ -225,7 +225,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha ao atualizar {key}: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     def configurar_permalink(self, estrutura: str) -> dict:
@@ -241,7 +241,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha em rewrite flush: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     def flush_cache(self) -> dict:
@@ -253,7 +253,7 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha em cache flush: "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 
     # ------------------------------------------------------------------ #
@@ -313,5 +313,5 @@ class WPCLI:
         return {
             "ok": False,
             "msg": f"falha ao criar usuario '{login}': "
-                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+                   f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }

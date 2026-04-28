@@ -10,10 +10,11 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Set
 
 
 _LOGGER_NAME = "peg"
@@ -23,6 +24,52 @@ _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _initialized = False
 _log_file_path: Optional[Path] = None
 
+# Lista de senhas em memoria local para sanitizacao dinamica
+_SENSITIVE_WORDS: Set[str] = set()
+
+def add_sensitive_word(word: str) -> None:
+    """Adiciona uma palavra/senha precisa para ser ofuscada no logger."""
+    if word and isinstance(word, str) and len(word) >= 4:
+        _SENSITIVE_WORDS.add(word)
+
+def sanitize_sensitive_data(value: str) -> str:
+    """
+    Substitui credenciais expostas, chaves privadas e palavras sensiveis por ****.
+    """
+    if not value or not isinstance(value, str):
+        return str(value)
+        
+    sanitized = value
+    
+    # 1. Mascarar blocos de chaves privadas (PEM)
+    sanitized = re.sub(
+        r"-----BEGIN .*?PRIVATE KEY-----.*?-----END .*?PRIVATE KEY-----",
+        "-----BEGIN PRIVATE KEY-----\n****\n-----END PRIVATE KEY-----",
+        sanitized,
+        flags=re.DOTALL
+    )
+    
+    # 2. Mascarar senhas explicitas em parametros do WP-CLI (ex: --user_pass="senha")
+    sanitized = re.sub(
+        r"(--user_pass|--dbpass|password)\s*(=|\s)\s*([\"']?)(.*?)\3(?=\s|$)",
+        r"\1\2\3****\3",
+        sanitized,
+        flags=re.IGNORECASE
+    )
+    
+    # 3. Mascarar credenciais sensiveis do URL (ex: mysql://user:pass@host)
+    sanitized = re.sub(
+        r"(://[^:]+:)([^@]+)(@)",
+        r"\1****\3",
+        sanitized
+    )
+    
+    # 4. Mascarar words list (inseridas pelo usuario no input)
+    for word in _SENSITIVE_WORDS:
+        # Usa replace simples para não quebrar com caracteres especiais
+        sanitized = sanitized.replace(word, "****")
+        
+    return sanitized
 
 def _resolve_level(level_name: Optional[str]) -> int:
     if not level_name:

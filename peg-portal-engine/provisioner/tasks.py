@@ -11,6 +11,7 @@ em erros criticos (SSH ou WP invalidos) e registrando os demais como avisos.
 from __future__ import annotations
 
 import time
+from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Optional
 
@@ -558,8 +559,19 @@ def acao_gerar_relatorio(cfg: dict, contexto_extra: Optional[dict] = None) -> di
 # ---------------------------------------------------------------------- #
 # Setup completo (15 etapas)
 # ---------------------------------------------------------------------- #
-def _etapa(num: int, nome: str, status: str, detalhes: str) -> dict:
-    return {"etapa": num, "nome": nome, "status": status, "detalhes": detalhes}
+@dataclass
+class StepResult:
+    step_id: int
+    title: str
+    status: str
+    details: str
+    critical: bool = False
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+def _etapa(num: int, nome: str, status: str, detalhes: str, critical: bool = False) -> dict:
+    return StepResult(step_id=num, title=nome, status=status, details=detalhes, critical=critical).to_dict()
 
 
 _STEP_FLAGS_DEFAULT = {
@@ -674,7 +686,7 @@ def setup_completo(
 
     # ---------------- Etapa 1: SSH ----------------
     res_ssh = acao_testar_ssh(cfg)
-    etapas.append(_etapa(1, "Testar SSH", res_ssh["status"], res_ssh["message"]))
+    etapas.append(_etapa(1, "Testar SSH", res_ssh["status"], res_ssh["message"], critical=True))
     _logger.info("[1/15] Testar SSH: %s — %s", res_ssh["status"], res_ssh["message"])
     if res_ssh["status"] == "erro":
         erros.append({"etapa": 1, "mensagem": res_ssh["message"]})
@@ -683,7 +695,7 @@ def setup_completo(
 
     # ---------------- Etapa 2: validar WP ----------------
     res_wp = acao_validar_wp(cfg)
-    etapas.append(_etapa(2, "Validar WordPress", res_wp["status"], res_wp["message"]))
+    etapas.append(_etapa(2, "Validar WordPress", res_wp["status"], res_wp["message"], critical=True))
     _logger.info("[2/15] Validar WP: %s — %s", res_wp["status"], res_wp["message"])
     if res_wp["status"] == "erro":
         erros.append({"etapa": 2, "mensagem": res_wp["message"]})
@@ -699,7 +711,7 @@ def setup_completo(
 
     # ---------------- Etapa 3: validar WP-CLI ----------------
     res_wpcli = acao_validar_wpcli(cfg)
-    etapas.append(_etapa(3, "Validar WP-CLI", res_wpcli["status"], res_wpcli["message"]))
+    etapas.append(_etapa(3, "Validar WP-CLI", res_wpcli["status"], res_wpcli["message"], critical=True))
     _logger.info("[3/15] WP-CLI: %s — %s", res_wpcli["status"], res_wpcli["message"])
     if res_wpcli["status"] == "erro":
         erros.append({"etapa": 3, "mensagem": res_wpcli["message"]})
@@ -707,10 +719,22 @@ def setup_completo(
         return _finalizar(cfg, contexto_relatorio, etapas, erros, inicio,
                           critico=True)
 
-    # ---------------- Etapa 4: Redis ----------------
+    # ---------------- Etapa 4: Validacao Critica REST API (Fail-Fast) ----------------
+    res_rest_fast = acao_testar_rest(cfg)
+    etapas.append(_etapa(4, "Testar REST API (Fail-Fast)", res_rest_fast["status"], res_rest_fast["message"], critical=True))
+    _logger.info("[4/15] REST API Fail-Fast: %s — %s", res_rest_fast["status"], res_rest_fast["message"])
+    if res_rest_fast["status"] == "erro":
+        erros.append({"etapa": 4, "mensagem": res_rest_fast["message"]})
+        # Aborta setup antes de mexer em plugins e conteudos
+        return _finalizar(cfg, contexto_relatorio, etapas, erros, inicio,
+                          critico=True)
+
+    rest_ok = True  # Foi testado como OK acima
+
+    # ---------------- Etapa 4.5: Redis ----------------
     res_redis = acao_verificar_redis(cfg)
     etapas.append(_etapa(4, "Verificar Redis", res_redis["status"], res_redis["message"]))
-    _logger.info("[4/15] Redis: %s — %s", res_redis["status"], res_redis["message"])
+    _logger.info("[4.5/15] Redis: %s — %s", res_redis["status"], res_redis["message"])
 
     # ---------------- Etapa 5/6: Plugins ----------------
     if not install_plugins:
@@ -790,10 +814,11 @@ def setup_completo(
                              "homepage sera definida apos paginas"))
         _registrar("SEO tecnico", True)
 
-    # ---------------- Etapa 9: REST API ----------------
+    # ---------------- Etapa 9: REST API (Re-teste legado) ----------------
+    # Apenas para compatibilidade se algo foi feito, mas ja validamos no fail-fast
     res_rest = acao_testar_rest(cfg)
-    etapas.append(_etapa(9, "Testar REST API", res_rest["status"], res_rest["message"]))
-    _logger.info("[9/15] REST: %s — %s", res_rest["status"], res_rest["message"])
+    etapas.append(_etapa(9, "Re-testar REST API", res_rest["status"], res_rest["message"]))
+    _logger.info("[9/15] REST (Re-teste): %s — %s", res_rest["status"], res_rest["message"])
     rest_ok = res_rest["status"] == "ok"
     if not rest_ok:
         erros.append({"etapa": 9, "mensagem": res_rest["message"]})

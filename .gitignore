@@ -53,6 +53,13 @@ __pycache__/
 *.py[cod]
 logs/
 *.log
+runs/
+
+# Security & Secrets
+.env*
+secrets/
+*.pem
+*.pub
 
 # Windows
 desktop.ini

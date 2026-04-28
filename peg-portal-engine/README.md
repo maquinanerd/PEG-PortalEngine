@@ -41,11 +41,11 @@ institucionais, categorias por nicho, SEO tecnico e relatorio de pendencias).
    ```bat
    pip install -r requirements.txt
    ```
-6. Copie `.env.example` para `.env` e preencha com seus dados (opcional —
-   tambem da para preencher pelo formulario web):
+6. Copie `.env.example` para `.env` e preencha com seus dados:
    ```bat
    copy .env.example .env
    ```
+   **Nota de Seguranca:** A Sprint 1 introduziu o uso obrigatorio de Basic Auth para proteger a aplicacao. Configure `PEG_ENGINE_AUTH_ENABLED=true` e defina as credenciais `PEG_ENGINE_USERNAME` e `PEG_ENGINE_PASSWORD` no `.env`. Os limites de tempo-limite de SSH e REST tambem podem ser configurados nas variaveis `PEG_ENGINE_SSH_TIMEOUT` e `PEG_ENGINE_REST_TIMEOUT`.
 7. Rode o painel:
    ```bat
    python app.py

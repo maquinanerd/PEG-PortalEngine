@@ -9,14 +9,15 @@ from __future__ import annotations
 
 import json
 import os
+from functools import wraps
 from pathlib import Path
 from typing import Any, Callable
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, Response
 
 from provisioner import tasks
-from provisioner.logger import get_logger
+from provisioner.logger import get_logger, add_sensitive_word
 from provisioner.utils import (
     build_profile_from_payload,
     carregar_niches,
@@ -50,6 +51,37 @@ app.config["JSON_SORT_KEYS"] = False
 
 
 # ---------------------------------------------------------------------- #
+# Segurança / Basic Auth
+# ---------------------------------------------------------------------- #
+def check_auth(username, password):
+    """Verifica se usuario e senha coincidem com as envs (se auth ativa)."""
+    env_user = os.environ.get("PEG_ENGINE_USERNAME", "")
+    env_pass = os.environ.get("PEG_ENGINE_PASSWORD", "")
+    return username == env_user and password == env_pass
+
+def authenticate():
+    """Envia um header 401 que solicita Basic Auth do navegador."""
+    return Response(
+        "Acesso negado. Por favor, forneça as credenciais corretas.",
+        401,
+        {"WWW-Authenticate": 'Basic realm="PEG Portal Engine - Login Requerido"'}
+    )
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Se nao estiver ativado no .env, permite acesso livre
+        if os.environ.get("PEG_ENGINE_AUTH_ENABLED", "").lower() != "true":
+            return f(*args, **kwargs)
+            
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ---------------------------------------------------------------------- #
 # Helpers
 # ---------------------------------------------------------------------- #
 def _payload_para_cfg(payload: dict) -> dict:
@@ -71,6 +103,13 @@ def _payload_para_cfg(payload: dict) -> dict:
         "wp_path":        (payload.get("wp_path") or "").strip(),
         "wpcli_bin":      (payload.get("wpcli_bin") or "/usr/local/bin/wp").strip(),
     }
+    
+    # Adiciona as senhas recebidas a wordlist do logger
+    if cfg["wp_app_password"]:
+        add_sensitive_word(cfg["wp_app_password"])
+    if cfg["ssh_password"]:
+        add_sensitive_word(cfg["ssh_password"])
+        
     return cfg
 
 
@@ -101,6 +140,7 @@ def _executar(handler: Callable[[dict], dict], payload: dict) -> Any:
 # Rota principal
 # ---------------------------------------------------------------------- #
 @app.route("/")
+@requires_auth
 def index():
     try:
         niches = carregar_niches()
@@ -144,36 +184,42 @@ def index():
 # API endpoints
 # ---------------------------------------------------------------------- #
 @app.post("/api/testar_ssh")
+@requires_auth
 def api_testar_ssh():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_testar_ssh, payload)
 
 
 @app.post("/api/testar_rest")
+@requires_auth
 def api_testar_rest():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_testar_rest, payload)
 
 
 @app.post("/api/validar_wp")
+@requires_auth
 def api_validar_wp():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_validar_wp, payload)
 
 
 @app.post("/api/validar_wpcli")
+@requires_auth
 def api_validar_wpcli():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_validar_wpcli, payload)
 
 
 @app.post("/api/verificar_redis")
+@requires_auth
 def api_verificar_redis():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_verificar_redis, payload)
 
 
 @app.post("/api/instalar_plugins")
+@requires_auth
 def api_instalar_plugins():
     payload = request.get_json(silent=True) or {}
     opcionais = _opcionais(payload)
@@ -186,30 +232,35 @@ def api_instalar_plugins():
 
 
 @app.post("/api/configurar_wp")
+@requires_auth
 def api_configurar_wp():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_configurar_wordpress, payload)
 
 
 @app.post("/api/criar_categorias")
+@requires_auth
 def api_criar_categorias():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_criar_categorias, payload)
 
 
 @app.post("/api/criar_paginas")
+@requires_auth
 def api_criar_paginas():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_criar_paginas, payload)
 
 
 @app.post("/api/criar_conteudo")
+@requires_auth
 def api_criar_conteudo():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_criar_conteudo_inicial, payload)
 
 
 @app.post("/api/setup_completo")
+@requires_auth
 def api_setup_completo():
     payload = request.get_json(silent=True) or {}
     opcionais = _opcionais(payload)
@@ -222,6 +273,7 @@ def api_setup_completo():
 
 
 @app.post("/api/gerar_relatorio")
+@requires_auth
 def api_gerar_relatorio():
     payload = request.get_json(silent=True) or {}
     return _executar(tasks.acao_gerar_relatorio, payload)
@@ -231,6 +283,7 @@ def api_gerar_relatorio():
 # Site Profiles
 # ---------------------------------------------------------------------- #
 @app.get("/api/site-profiles")
+@requires_auth
 def api_site_profiles():
     try:
         profiles = list_site_profiles()
@@ -245,6 +298,7 @@ def api_site_profiles():
 
 
 @app.post("/api/load-site-profile")
+@requires_auth
 def api_load_site_profile():
     payload = request.get_json(silent=True) or {}
     slug = (payload.get("slug") or payload.get("path") or "").strip()
@@ -277,6 +331,7 @@ def api_load_site_profile():
 
 
 @app.post("/api/setup-from-profile")
+@requires_auth
 def api_setup_from_profile():
     payload = request.get_json(silent=True) or {}
     slug = (payload.get("slug") or payload.get("path") or "").strip()
@@ -389,6 +444,7 @@ def api_setup_from_profile():
 
 
 @app.post("/api/upload-and-run")
+@requires_auth
 def api_upload_and_run():
     """
     Aceita um Site Profile completo (com credenciais inline) e executa
@@ -523,6 +579,7 @@ def _profile_do_payload(payload: dict) -> dict:
 
 
 @app.post("/api/validate-site-profile")
+@requires_auth
 def api_validate_site_profile():
     payload = request.get_json(silent=True) or {}
     try:
@@ -546,6 +603,7 @@ def api_validate_site_profile():
 
 
 @app.post("/api/save-site-profile")
+@requires_auth
 def api_save_site_profile():
     payload = request.get_json(silent=True) or {}
     overwrite = bool(payload.get("overwrite"))
@@ -570,6 +628,7 @@ def api_save_site_profile():
 
 
 @app.post("/api/delete-site-profile")
+@requires_auth
 def api_delete_site_profile():
     payload = request.get_json(silent=True) or {}
     slug = (payload.get("slug") or "").strip()
