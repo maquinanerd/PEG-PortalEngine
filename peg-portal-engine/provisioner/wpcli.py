@@ -255,3 +255,63 @@ class WPCLI:
             "msg": f"falha em cache flush: "
                    f"{res['stderr'].strip() or res['stdout'].strip()}",
         }
+
+    # ------------------------------------------------------------------ #
+    # Usuarios
+    # ------------------------------------------------------------------ #
+    def usuario_existe(self, login_or_email: str) -> bool:
+        """Checa se ja existe usuario com aquele login OU email."""
+        if not login_or_email:
+            return False
+        cmd = self._build_cmd(
+            "user get",
+            flags=[shlex.quote(login_or_email), "--field=ID"],
+        )
+        res = self._run(cmd, timeout=30)
+        return res["exit_code"] == 0 and res["stdout"].strip().isdigit()
+
+    def criar_usuario(
+        self,
+        login: str,
+        email: str,
+        role: str = "subscriber",
+        password: Optional[str] = None,
+        display_name: Optional[str] = None,
+    ) -> dict:
+        """Cria usuario WP via 'wp user create'. Idempotente."""
+        if not login or not email:
+            return {"ok": False, "msg": "login e email sao obrigatorios"}
+
+        if self.usuario_existe(login) or self.usuario_existe(email):
+            return {
+                "ok": True,
+                "ja_existia": True,
+                "msg": f"usuario '{login}' ja existe",
+            }
+
+        flags = [
+            shlex.quote(login),
+            shlex.quote(email),
+            f"--role={shlex.quote(role or 'subscriber')}",
+            "--porcelain",
+        ]
+        if password:
+            flags.append(f"--user_pass={shlex.quote(password)}")
+        if display_name:
+            flags.append(f"--display_name={shlex.quote(display_name)}")
+
+        cmd = self._build_cmd("user create", flags=flags)
+        res = self._run(cmd, timeout=60)
+        if res["exit_code"] == 0:
+            uid = res["stdout"].strip()
+            return {
+                "ok": True,
+                "ja_existia": False,
+                "id": uid,
+                "msg": f"usuario '{login}' criado (id={uid})",
+            }
+        return {
+            "ok": False,
+            "msg": f"falha ao criar usuario '{login}': "
+                   f"{res['stderr'].strip() or res['stdout'].strip()}",
+        }

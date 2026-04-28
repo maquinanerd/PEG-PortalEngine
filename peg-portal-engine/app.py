@@ -7,6 +7,7 @@ Comando: python app.py
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any, Callable
@@ -335,18 +336,26 @@ def api_setup_from_profile():
     # required + optional viram opcionais_extras (forca instalacao)
     opcionais_extras = sorted(set(required) | set(optional))
 
-    # Step flags: combina o que vem do front com defaults do profile (content)
+    # Step flags: defaults <- profile.content/report <- profile.steps <- request
     content_cfg = profile_merged.get("content") or {}
     report_cfg = profile_merged.get("report") or {}
+    profile_steps = profile_merged.get("steps") or {}
+    if not isinstance(profile_steps, dict):
+        profile_steps = {}
     step_flags = {
         "install_plugins":   True,
         "configure_wp":      True,
         "apply_seo":         True,
+        "create_users":      True,
         "create_pages":      bool(content_cfg.get("create_pages", True)),
         "create_categories": bool(content_cfg.get("create_categories", True)),
         "create_test_post":  bool(content_cfg.get("create_test_post", True)),
         "generate_report":   bool(report_cfg.get("generate_markdown", True)),
     }
+    # Profile.steps tem prioridade sobre defaults; request tem prioridade final
+    for k in step_flags:
+        if k in profile_steps:
+            step_flags[k] = bool(profile_steps[k])
     for k in step_flags:
         if k in steps_in:
             step_flags[k] = bool(steps_in[k])
@@ -376,6 +385,119 @@ def api_setup_from_profile():
         return jsonify(resultado)
     except Exception as exc:
         _logger.exception("Erro em setup-from-profile: %s", exc)
+        return _erro_json(f"Erro interno: {exc}", status_http=500)
+
+
+@app.post("/api/upload-and-run")
+def api_upload_and_run():
+    """
+    Aceita um Site Profile completo (com credenciais inline) e executa
+    setup_completo imediatamente. Aceita 2 formatos:
+      1) multipart/form-data com arquivo 'profile_file' (JSON)
+      2) application/json com o profile no corpo (objeto raiz = profile)
+
+    Honra profile.steps automaticamente. Nao persiste nada em disco.
+    """
+    profile: dict = {}
+
+    # 1) multipart com arquivo
+    arq = request.files.get("profile_file") if request.files else None
+    if arq is not None:
+        try:
+            raw = arq.read().decode("utf-8")
+            profile = json.loads(raw)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            return _erro_json(f"Arquivo enviado nao e JSON valido: {exc}")
+    else:
+        # 2) JSON puro no body
+        body = request.get_json(silent=True)
+        if isinstance(body, dict):
+            profile = body
+
+    if not isinstance(profile, dict) or not profile:
+        return _erro_json(
+            "Envie o profile via 'profile_file' (multipart) ou no corpo JSON.",
+            status_http=400,
+        )
+
+    ok, erros = validate_site_profile(profile)
+    if not ok:
+        return jsonify({
+            "status": "erro",
+            "message": "Profile invalido: " + "; ".join(erros),
+            "details": {"errors": erros},
+        }), 400
+
+    # Validar credenciais inline (nao podem estar vazias aqui)
+    ssh_block = profile.get("ssh") or {}
+    auth = (ssh_block.get("auth_method") or "password").strip()
+    if auth == "password" and not (ssh_block.get("password") or "").strip():
+        return _erro_json(
+            "auth_method='password' exige ssh.password preenchido no JSON."
+        )
+    if auth == "key" and not (ssh_block.get("key_path") or "").strip():
+        return _erro_json(
+            "auth_method='key' exige ssh.key_path preenchido no JSON."
+        )
+
+    wp_block = profile.get("wordpress") or {}
+    if not (wp_block.get("application_password") or "").strip():
+        return _erro_json(
+            "wordpress.application_password obrigatoria no JSON."
+        )
+
+    cfg = profile_para_cfg(profile)
+
+    plugins_cfg = profile.get("plugins") or {}
+    required = list(plugins_cfg.get("required") or [])
+    optional = list(plugins_cfg.get("optional") or [])
+    skip = list(plugins_cfg.get("skip") or [])
+    opcionais_extras = sorted(set(required) | set(optional))
+
+    content_cfg = profile.get("content") or {}
+    report_cfg = profile.get("report") or {}
+    profile_steps = profile.get("steps") or {}
+    if not isinstance(profile_steps, dict):
+        profile_steps = {}
+    step_flags = {
+        "install_plugins":   True,
+        "configure_wp":      True,
+        "apply_seo":         True,
+        "create_users":      True,
+        "create_pages":      bool(content_cfg.get("create_pages", True)),
+        "create_categories": bool(content_cfg.get("create_categories", True)),
+        "create_test_post":  bool(content_cfg.get("create_test_post", True)),
+        "generate_report":   bool(report_cfg.get("generate_markdown", True)),
+    }
+    for k in step_flags:
+        if k in profile_steps:
+            step_flags[k] = bool(profile_steps[k])
+
+    profile_meta = extrair_profile_meta(profile)
+    profile_meta["plugins_required"] = required
+    profile_meta["plugins_optional"] = optional
+
+    try:
+        resultado = tasks.setup_completo(
+            cfg,
+            opcionais_extras=opcionais_extras,
+            pular_plugins=skip,
+            profile_meta=profile_meta,
+            step_flags=step_flags,
+        )
+        if isinstance(resultado, dict):
+            resultado.setdefault("details", {})
+            if isinstance(resultado["details"], dict):
+                resultado["details"]["profile"] = {
+                    "slug": profile_meta.get("slug"),
+                    "name": profile_meta.get("name"),
+                    "version": profile_meta.get("version"),
+                }
+                resultado["details"]["step_flags"] = step_flags
+                resultado["details"]["origem"] = "upload-and-run"
+        return jsonify(resultado)
+    except Exception as exc:
+        _logger.exception("Erro em upload-and-run: %s", exc)
         return _erro_json(f"Erro interno: {exc}", status_http=500)
 
 

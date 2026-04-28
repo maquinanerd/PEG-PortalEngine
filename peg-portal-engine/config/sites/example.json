@@ -1,8 +1,8 @@
 {
   "profile": {
     "slug": "example",
-    "version": "1.0.0",
-    "description": "Profile de exemplo — duplique este arquivo para criar profiles reais."
+    "version": "2.0.0",
+    "description": "Profile de exemplo COMPLETO. Duplique este arquivo, preencha tudo (incluindo senhas, usuarios, paginas e categorias) e suba pelo botao 'Subir JSON e rodar' no dashboard. Senhas nao sao gravadas em disco quando voce salva profile pelo dashboard."
   },
   "portal": {
     "name": "Meu Portal Exemplo",
@@ -48,11 +48,40 @@
     ],
     "skip": []
   },
+  "users": [
+    {
+      "login": "editor1",
+      "email": "editor@exemplo.com.br",
+      "role": "editor",
+      "password": "",
+      "display_name": "Editor Principal"
+    },
+    {
+      "login": "autor1",
+      "email": "autor@exemplo.com.br",
+      "role": "author",
+      "password": "",
+      "display_name": "Autor Convidado"
+    }
+  ],
   "content": {
     "create_pages": true,
     "create_categories": true,
     "create_test_post": true,
-    "homepage_slug": "inicio"
+    "homepage_slug": "inicio",
+    "pages_inline": [],
+    "categories_inline": [],
+    "posts_inline": []
+  },
+  "steps": {
+    "install_plugins": true,
+    "configure_wp": true,
+    "apply_seo": true,
+    "create_users": true,
+    "create_categories": true,
+    "create_pages": true,
+    "create_test_post": true,
+    "generate_report": true
   },
   "report": {
     "generate_markdown": true,

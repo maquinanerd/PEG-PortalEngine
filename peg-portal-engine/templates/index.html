@@ -23,6 +23,33 @@
     <!-- ===================== Form ===================== -->
     <div class="col-lg-5">
 
+      <!-- Subir JSON e rodar (caminho rapido) -->
+      <div class="card shadow-sm mb-3 border-success" id="card-upload">
+        <div class="card-header bg-success text-white">
+          <strong>Subir JSON e rodar</strong>
+          <span class="text-white-50 small ms-2">setup completo em 1 clique</span>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-2">
+            Envie um arquivo JSON com TUDO preenchido (credenciais, usuarios,
+            paginas, categorias, posts e etapas). O setup roda imediatamente,
+            sem persistir senhas em disco. Use
+            <code>config/sites/example.json</code> como modelo.
+          </p>
+          <div class="input-group input-group-sm mb-2">
+            <input type="file" class="form-control" id="upload-profile-file"
+                   accept="application/json,.json">
+            <button type="button" class="btn btn-success" id="btn-upload-run">
+              Subir e rodar
+            </button>
+          </div>
+          <div class="form-text">
+            O arquivo nao e enviado em multipart — e lido localmente, validado
+            no servidor, e o JSON inteiro vira o profile da execucao.
+          </div>
+        </div>
+      </div>
+
       <!-- Gerenciar Portal / Profile -->
       <div class="card shadow-sm mb-3" id="card-profile">
         <div class="card-header bg-white">

@@ -590,8 +590,9 @@ etapas com gating por flag.
 | Funcao | O que faz |
 |--------|-----------|
 | `_normalize_step_flags(step_flags, content_flags)` | Funde flags do dashboard + flags legadas (`content_flags`) com `_STEP_FLAGS_DEFAULT` (todos `True`). |
-| `setup_completo(cfg, opcionais_extras=None, pular_plugins=None, content_flags=None, profile_meta=None, step_flags=None)` | Orquestra todas as 14 etapas. Cada etapa:<br>1. Verifica a flag correspondente.<br>2. Se desligada, registra `_etapa(..., "aviso", "desativado pela flag…")` e adiciona a `etapas_puladas`.<br>3. Se ligada, executa a `acao_*` e adiciona a `etapas_executadas`.<br>4. Erros nao criticos viram avisos; erros criticos (SSH/WP invalidos) abortam.<br>Devolve `{"status","message","details":{etapas, contexto_relatorio, relatorio_path}}`. |
-| `_finalizar(cfg, contexto_relatorio, etapas, erros, inicio, critico, generate_report=True)` | Calcula duracao, anexa erros, e (se `generate_report=True`) chama `gerar_relatorio`. |
+| `acao_criar_usuarios(cfg)` | Le `cfg["users"]` e cria cada usuario via `wp user create` (idempotente — usuarios existentes por login OU email sao mantidos). Aceita `{login,email,role?,password?,display_name?}`. |
+| `setup_completo(cfg, opcionais_extras=None, pular_plugins=None, content_flags=None, profile_meta=None, step_flags=None)` | Orquestra todas as 15 etapas. Cada etapa:<br>1. Verifica a flag correspondente.<br>2. Se desligada, registra `_etapa(..., "aviso", "desativado pela flag…")` e adiciona a `etapas_puladas`.<br>3. Se ligada, executa a `acao_*` e adiciona a `etapas_executadas`.<br>4. Erros nao criticos viram avisos; erros criticos (SSH/WP invalidos) abortam.<br>Devolve `{"status","message","details":{etapas, contexto_relatorio, relatorio_path}}`. |
+| `_finalizar(cfg, contexto_relatorio, etapas, erros, inicio, critico, generate_report=True)` | Calcula duracao, anexa erros, e (se `generate_report=True`) chama `gerar_relatorio` (etapa 15). |
 
 `_STEP_FLAGS_DEFAULT` (constante):
 
@@ -600,12 +601,57 @@ etapas com gating por flag.
   "install_plugins":   True,
   "configure_wp":      True,
   "apply_seo":         True,
+  "create_users":      True,   # NEW (etapa 12)
   "create_pages":      True,
   "create_categories": True,
   "create_test_post":  True,
   "generate_report":   True,
 }
 ```
+
+**Ordem das 15 etapas:** 1=SSH, 2=Validar WP, 3=WP-CLI, 4=Redis, 5-6=Plugins,
+7=Configurar WP, 8=SEO base, 9=REST, 10=Categorias, 11=Paginas, 12=Usuarios,
+13=Conteudo inicial, 14=Flush rewrite/cache, 15=Relatorio.
+
+**Conteudo inline:** se `cfg["pages_inline"]`, `cfg["categories_inline"]` ou
+`cfg["posts_inline"]` forem listas nao-vazias, as acoes `acao_criar_paginas`,
+`acao_criar_categorias` e `acao_criar_conteudo_inicial` usam essas listas em
+vez de ler `pages.json` / `categories.json` / criar 1 post fixo.
+
+---
+
+### 7.9 Endpoint `POST /api/upload-and-run` (novo)
+
+Caminho rapido: o usuario sobe **um unico JSON** com TUDO preenchido
+(credenciais, usuarios, paginas, categorias, posts, etapas) e o setup roda
+imediatamente, sem persistir nada em disco.
+
+- Aceita `multipart/form-data` com arquivo `profile_file` OU `application/json`
+  com o profile no corpo.
+- Valida via `validate_site_profile`, exige `wordpress.application_password`
+  e `ssh.password`/`ssh.key_path` preenchidos no JSON.
+- Honra automaticamente `profile.steps` para selecionar etapas.
+- Resposta identica a `/api/setup-from-profile`, com `details.origem="upload-and-run"`.
+
+Bloco `users[]` no profile (cada item):
+```json
+{"login": "editor1", "email": "ed@x.com", "role": "editor",
+ "password": "...", "display_name": "Editor"}
+```
+
+Bloco `steps` no profile (chaves opcionais, todas booleanas):
+```json
+{"install_plugins": true, "configure_wp": true, "apply_seo": true,
+ "create_users": true, "create_categories": true, "create_pages": true,
+ "create_test_post": true, "generate_report": true}
+```
+
+Bloco `content.{pages,categories,posts}_inline` no profile: listas opcionais
+que substituem os JSONs estaticos quando preenchidas.
+
+**Seguranca:** `users[*].password` e listado em `_SENSIVEIS_LISTAS` —
+`save_site_profile` zera essas senhas antes de gravar e
+`sanitize_site_profile` mascara como `****`.
 
 ---
 

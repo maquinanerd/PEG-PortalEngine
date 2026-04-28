@@ -676,6 +676,81 @@
   }
 
   // -------------------------------------------------------------------- //
+  // Subir JSON e rodar (caminho rapido)
+  // -------------------------------------------------------------------- //
+  const inputUploadFile = document.getElementById("upload-profile-file");
+  const btnUploadRun    = document.getElementById("btn-upload-run");
+
+  function lerArquivoComoJSON(file) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onerror = () => reject(new Error("Falha ao ler arquivo."));
+      fr.onload = () => {
+        try {
+          resolve(JSON.parse(String(fr.result || "")));
+        } catch (e) {
+          reject(new Error("JSON invalido: " + e.message));
+        }
+      };
+      fr.readAsText(file, "utf-8");
+    });
+  }
+
+  async function uploadEAplicar() {
+    if (!inputUploadFile || !inputUploadFile.files || !inputUploadFile.files[0]) {
+      appendLog("Selecione um arquivo .json antes de enviar.", "log-aviso");
+      return;
+    }
+    const file = inputUploadFile.files[0];
+    let profile;
+    try {
+      profile = await lerArquivoComoJSON(file);
+    } catch (err) {
+      appendLog(String(err.message || err), "log-erro");
+      return;
+    }
+
+    const slug = (profile && profile.profile && profile.profile.slug) || file.name;
+    const ok = window.confirm(
+      "Rodar setup completo agora usando o JSON '" + slug + "'?\n\n" +
+      "As credenciais NAO serao gravadas em disco — sao usadas apenas " +
+      "para esta execucao."
+    );
+    if (!ok) {
+      appendLog("Setup cancelado pelo usuario.", "log-aviso");
+      return;
+    }
+
+    appendLog("▶ Subir e rodar (" + slug + ")", "log-meta");
+    setBusy(true);
+    try {
+      const resp = await fetch("/api/upload-and-run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      const data = await resp.json();
+      const status = data.status || "erro";
+      appendLog(
+        `[${status.toUpperCase()}] ${data.message || ""}`,
+        statusClasse(status)
+      );
+      if (data.details) {
+        try {
+          const det = typeof data.details === "string"
+            ? data.details
+            : JSON.stringify(data.details, null, 2);
+          appendLog(det, "log-muted");
+        } catch (_e) { /* ignore */ }
+      }
+    } catch (err) {
+      appendLog("Erro: " + err, "log-erro");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // -------------------------------------------------------------------- //
   // Bind dos botoes do dashboard
   // -------------------------------------------------------------------- //
   if (selectProfile)        carregarListaProfiles();
@@ -686,6 +761,7 @@
   if (btnSalvarProf)        btnSalvarProf.addEventListener("click", salvarProfile);
   if (btnExcluirProf)       btnExcluirProf.addEventListener("click", excluirProfile);
   if (btnSetupProfile)      btnSetupProfile.addEventListener("click", rodarSetupPeloProfile);
+  if (btnUploadRun)         btnUploadRun.addEventListener("click", uploadEAplicar);
 
   appendLog("Painel pronto. Preencha os campos e clique em uma acao.", "log-meta");
 })();

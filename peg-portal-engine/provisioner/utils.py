@@ -99,6 +99,12 @@ _SENSIVEIS = {
     ("ssh", "key_path"),
 }
 
+# Campos sensiveis dentro de listas (group, list_key, item_field).
+# Sao zerados em save_site_profile e mascarados em sanitize_site_profile.
+_SENSIVEIS_LISTAS = [
+    ("users", "users", "password"),
+]
+
 _OBRIGATORIOS = [
     ("profile", "slug"),
     ("portal", "name"),
@@ -256,6 +262,42 @@ def validate_site_profile(profile: dict) -> tuple[bool, list[str]]:
             if chave in plugins and not isinstance(plugins[chave], list):
                 erros.append(f"Campo plugins.{chave} deve ser uma lista.")
 
+    # Bloco 'users' (lista opcional). Cada item exige login + email.
+    users = profile.get("users")
+    if users is not None:
+        if not isinstance(users, list):
+            erros.append("Bloco 'users' deve ser uma lista.")
+        else:
+            for i, u in enumerate(users):
+                if not isinstance(u, dict):
+                    erros.append(f"users[{i}] deve ser um objeto.")
+                    continue
+                if not str(u.get("login") or "").strip():
+                    erros.append(f"users[{i}].login obrigatorio")
+                if not str(u.get("email") or "").strip():
+                    erros.append(f"users[{i}].email obrigatorio")
+                role = u.get("role")
+                if role is not None and not isinstance(role, str):
+                    erros.append(f"users[{i}].role deve ser string")
+
+    # Bloco 'steps' (dict opcional, valores booleanos)
+    steps = profile.get("steps")
+    if steps is not None:
+        if not isinstance(steps, dict):
+            erros.append("Bloco 'steps' deve ser um objeto.")
+        else:
+            for k, v in steps.items():
+                if not isinstance(v, bool):
+                    erros.append(f"steps.{k} deve ser booleano.")
+
+    # Listas inline em content (todas opcionais)
+    content = profile.get("content") or {}
+    if isinstance(content, dict):
+        for chave in ("pages_inline", "categories_inline", "posts_inline"):
+            v = content.get(chave)
+            if v is not None and not isinstance(v, list):
+                erros.append(f"content.{chave} deve ser uma lista.")
+
     # Nicho
     niche = _get_path(profile, "portal", "niche")
     if isinstance(niche, str) and niche.strip():
@@ -277,6 +319,7 @@ def sanitize_site_profile(profile: dict) -> dict:
     """
     Retorna copia segura do profile, mascarando credenciais.
     Campos vazios continuam vazios; campos preenchidos viram '****'.
+    Mascara senhas em listas (ex.: users[*].password).
     """
     if not isinstance(profile, dict):
         return {}
@@ -285,6 +328,12 @@ def sanitize_site_profile(profile: dict) -> dict:
         bloco = seguro.get(grupo)
         if isinstance(bloco, dict) and bloco.get(chave):
             bloco[chave] = "****"
+    for _grupo, list_key, item_field in _SENSIVEIS_LISTAS:
+        lista = seguro.get(list_key)
+        if isinstance(lista, list):
+            for it in lista:
+                if isinstance(it, dict) and it.get(item_field):
+                    it[item_field] = "****"
     return seguro
 
 
@@ -302,7 +351,7 @@ def merge_profile_with_payload(profile: dict, payload: dict) -> dict:
 
     # Override aninhado: { "wordpress": {...}, "ssh": {...}, ... }
     for grupo in ("profile", "portal", "wordpress", "ssh",
-                  "seo", "plugins", "content", "report"):
+                  "seo", "plugins", "content", "report", "steps"):
         sub = payload.get(grupo)
         if not isinstance(sub, dict):
             continue
@@ -316,6 +365,10 @@ def merge_profile_with_payload(profile: dict, payload: dict) -> dict:
             if isinstance(v, str) and not v.strip():
                 continue
             bloco[k] = v
+
+    # Override de listas em raiz (users) — substitui inteiro se enviado
+    if isinstance(payload.get("users"), list):
+        base["users"] = copy.deepcopy(payload["users"])
 
     # Override achatado (compatibilidade com o formulario atual).
     achatado_map = {
@@ -379,6 +432,20 @@ def profile_para_cfg(profile: dict, opcionais_extras: Optional[list] = None) -> 
         "wp_path":        str(wp.get("wp_path") or "").strip(),
         "wpcli_bin":      str(wp.get("wp_cli_path") or "/usr/local/bin/wp").strip(),
     }
+
+    # Conteudo inline e usuarios — passados adiante para acoes_*
+    content = profile.get("content") or {}
+    if isinstance(content, dict):
+        if isinstance(content.get("pages_inline"), list):
+            cfg["pages_inline"] = content["pages_inline"]
+        if isinstance(content.get("categories_inline"), list):
+            cfg["categories_inline"] = content["categories_inline"]
+        if isinstance(content.get("posts_inline"), list):
+            cfg["posts_inline"] = content["posts_inline"]
+
+    if isinstance(profile.get("users"), list):
+        cfg["users"] = profile["users"]
+
     return cfg
 
 
@@ -615,6 +682,14 @@ def save_site_profile(
     ssh["password"] = ""
     # key_path: tambem nunca persistido (caminho local de chave privada)
     ssh["key_path"] = ""
+
+    # Senhas em listas (users[*].password) — nunca persistir
+    for _grupo, list_key, item_field in _SENSIVEIS_LISTAS:
+        lista = seguro.get(list_key)
+        if isinstance(lista, list):
+            for it in lista:
+                if isinstance(it, dict) and item_field in it:
+                    it[item_field] = ""
 
     # Garante que profile.slug salvo seja o sanitizado
     pr = seguro.setdefault("profile", {})
