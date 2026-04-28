@@ -471,6 +471,8 @@ def api_delete_site_profile():
 # Entry point
 # ---------------------------------------------------------------------- #
 if __name__ == "__main__":
-    _logger.info("Iniciando PEG Portal Engine em http://127.0.0.1:5000")
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "5000"))
+    _logger.info("Iniciando PEG Portal Engine em http://%s:%s", host, port)
     # debug=False para evitar reload duplo (importante em Windows + Paramiko)
-    app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)
+    app.run(host=host, port=port, debug=False, use_reloader=False)
