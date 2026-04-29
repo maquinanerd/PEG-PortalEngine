@@ -70,7 +70,9 @@ body {
   border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: fit-content;
+  position: sticky;
+  top: 28px;
 }
 .cover-lockup { display: flex; gap: 12px; align-items: center; margin-bottom: 28px; }
 .cover-logo { width: 44px; height: 44px; }
@@ -139,7 +141,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .badge-warning { background: var(--peach); color: var(--dark-orange); font-size: 9px; padding: 3px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 800; margin-left: 6px; vertical-align: middle;}
 
 /* Right Sidebar (Terminal & Actions) */
-.right-sidebar { display: flex; flex-direction: column; gap: 18px; }
+.right-sidebar { display: flex; flex-direction: column; gap: 18px; height: fit-content; position: sticky; top: 28px; }
 
 /* Buttons */
 .btn { height: 42px; border-radius: 9px; border: 1px solid var(--line); font-family: var(--font-main); font-weight: 700; font-size: 13px; cursor: pointer; transition: all .2s; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center;}
