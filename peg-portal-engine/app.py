@@ -108,6 +108,32 @@ def _start_setup_job(cfg, opcionais_extras, skip, profile_meta, step_flags):
         "message": "Setup iniciado em background."
     })
 
+@app.get("/api/v1/jobs/<job_id>/result")
+@requires_auth
+def api_job_result(job_id):
+    """
+    Retorna o result.json de um job_id especifico, se ja tiver finalizado.
+    """
+    from provisioner.logger import _logs_dir
+    
+    runs_dir = _logs_dir() / "runs"
+    if not runs_dir.exists():
+        return _erro_json("Nenhuma execucao encontrada", status_http=404)
+        
+    for d in runs_dir.iterdir():
+        if d.is_dir() and d.name.endswith(f"_{job_id}"):
+            res_file = d / "result.json"
+            if res_file.exists():
+                try:
+                    data = json.loads(res_file.read_text(encoding="utf-8"))
+                    return jsonify(data)
+                except Exception as exc:
+                    return _erro_json(f"Erro ao ler result.json: {exc}", status_http=500)
+            else:
+                return jsonify({"status": "running", "message": "Job em execucao ou result.json ausente"})
+                
+    return _erro_json("Job nao encontrado no historico", status_http=404)
+
 
 # ---------------------------------------------------------------------- #
 # Segurança / Basic Auth
@@ -435,11 +461,7 @@ def api_setup_from_profile():
         )
 
     wp_block = profile_merged.get("wordpress") or {}
-    if not (wp_block.get("application_password") or "").strip():
-        return _erro_json(
-            "Application Password do WordPress nao informada "
-            "(profile ou formulario)."
-        )
+    # Retirada a obrigatoriedade da application_password, a Etapa 3.5 gera caso falte.
 
     cfg = profile_para_cfg(profile_merged)
 
@@ -485,6 +507,7 @@ def api_setup_from_profile():
         return _erro_json(f"Erro interno: {exc}", status_http=500)
 
 
+@app.post("/api/v1/provision")
 @app.post("/api/upload-and-run")
 @requires_auth
 def api_upload_and_run():
@@ -539,10 +562,7 @@ def api_upload_and_run():
         )
 
     wp_block = profile.get("wordpress") or {}
-    if not (wp_block.get("application_password") or "").strip():
-        return _erro_json(
-            "wordpress.application_password obrigatoria no JSON."
-        )
+    # Retirada a obrigatoriedade da application_password, a Etapa 3.5 gera caso falte.
 
     cfg = profile_para_cfg(profile)
 

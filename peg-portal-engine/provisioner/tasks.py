@@ -114,6 +114,25 @@ def acao_validar_wpcli(cfg: dict) -> dict:
     finally:
         ssh_client.fechar(client)
 
+def acao_gerar_app_password(cfg: dict) -> dict:
+    try:
+        client = _abrir_ssh(cfg)
+    except Exception as exc:
+        return _resp("erro", f"SSH falhou: {exc}")
+    try:
+        wp = _abrir_wpcli(cfg, client)
+        app_name = f"PEG-Engine-{int(time.time())}"
+        cmd = f"user application-password create {cfg.get('wp_user')} {app_name} --porcelain"
+        ok, out, err = wp._run_cmd(cmd)
+        if ok and out:
+            password = out.strip()
+            cfg["wp_app_password"] = password
+            return _resp("ok", f"Application Password '{app_name}' gerada com sucesso", {"password": password})
+        else:
+            return _resp("erro", f"Falha ao gerar Application Password via WP-CLI: {err}")
+    finally:
+        ssh_client.fechar(client)
+
 
 def acao_verificar_redis(cfg: dict) -> dict:
     try:
@@ -612,6 +631,7 @@ def setup_completo(
     profile_meta: Optional[dict] = None,
     step_flags: Optional[dict] = None,
     on_progress: Optional[Callable[[dict], None]] = None,
+    job_id: Optional[str] = None,
 ) -> dict:
     """
     Executa todas as etapas em sequencia. Erros nao criticos viram avisos
@@ -637,7 +657,7 @@ def setup_completo(
     generate_report   = flags["generate_report"]
 
     slug_portal = cfg.get("portal_name", "portal")
-    setup_run_logger(slug_portal)
+    setup_run_logger(slug_portal, job_id=job_id)
 
     inicio = time.monotonic()
     iniciado_em = datetime.now()
@@ -728,6 +748,16 @@ def setup_completo(
         # WP-CLI invalido tambem e critico — sem ele plugins/opcoes nao rodam
         return _finalizar(cfg, contexto_relatorio, etapas, erros, inicio,
                           critico=True)
+
+    # ---------------- Etapa 3.5: gerar App Password (se faltar) ----------------
+    if not (cfg.get("wp_app_password") or "").strip():
+        res_app_pass = acao_gerar_app_password(cfg)
+        add_etapa(_etapa(3, "Gerar App Password", res_app_pass["status"], res_app_pass["message"]))
+        _logger.info("[3.5/15] App Password: %s — %s", res_app_pass["status"], res_app_pass["message"])
+        if res_app_pass["status"] == "erro":
+            erros.append({"etapa": 3, "mensagem": res_app_pass["message"]})
+        else:
+            contexto_relatorio["wp"]["application_password_gerada"] = res_app_pass["details"]["password"]
 
     # ---------------- Etapa 4: Validacao Critica REST API (Fail-Fast) ----------------
     res_rest_fast = acao_testar_rest(cfg)

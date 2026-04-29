@@ -140,7 +140,7 @@ def log_credencial_segura(_valor: object) -> str:
 # ---------------------------------------------------------------------- #
 # Isolamento de Execucao (Run Logger)
 # ---------------------------------------------------------------------- #
-def setup_run_logger(slug: str) -> Path:
+def setup_run_logger(slug: str, job_id: Optional[str] = None) -> Path:
     """
     Configura um FileHandler temporario para a execucao atual e cria
     a pasta de run correspondente, retornando o Path dessa pasta.
@@ -154,7 +154,12 @@ def setup_run_logger(slug: str) -> Path:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_slug = slug.replace("/", "_").replace("\\", "_")
     
-    run_path = _logs_dir() / "runs" / f"{safe_slug}_{timestamp}"
+    if job_id:
+        folder_name = f"{safe_slug}_{timestamp}_{job_id}"
+    else:
+        folder_name = f"{safe_slug}_{timestamp}"
+        
+    run_path = _logs_dir() / "runs" / folder_name
     run_path.mkdir(parents=True, exist_ok=True)
     
     _run_dir = run_path
