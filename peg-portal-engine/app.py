@@ -52,6 +52,38 @@ app = Flask(
 )
 app.config["JSON_SORT_KEYS"] = False
 
+
+# ---------------------------------------------------------------------- #
+# Segurança / Basic Auth
+# ---------------------------------------------------------------------- #
+def check_auth(username, password):
+    """Verifica se usuario e senha coincidem com as envs (se auth ativa)."""
+    env_user = os.environ.get("PEG_ENGINE_USERNAME", "")
+    env_pass = os.environ.get("PEG_ENGINE_PASSWORD", "")
+    return username == env_user and password == env_pass
+
+def authenticate():
+    """Envia um header 401 que solicita Basic Auth do navegador."""
+    return Response(
+        "Acesso negado. Por favor, forneça as credenciais corretas.",
+        401,
+        {"WWW-Authenticate": 'Basic realm="PEG Portal Engine - Login Requerido"'}
+    )
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Se nao estiver ativado no .env, permite acesso livre
+        if os.environ.get("PEG_ENGINE_AUTH_ENABLED", "").lower() != "true":
+            return f(*args, **kwargs)
+            
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+
 _ACTIVE_JOBS = {}
 
 @app.get("/api/stream/<job_id>")
