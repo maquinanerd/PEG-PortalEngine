@@ -18,6 +18,7 @@
 
   const MASCARA_SENSIVEL = "****";
   let profileSlugAtivo = "";
+  let streamAtivo = null;
 
   const ENDPOINTS = {
     testar_ssh:        "/api/testar_ssh",
@@ -209,6 +210,11 @@
         return;
       }
 
+      if (data.status === "accepted" && data.job_id) {
+          iniciarStream(data.job_id);
+          return;
+      }
+
       const status = data.status || (resp.ok ? "ok" : "erro");
       const klass = statusClasse(status);
       appendLog(
@@ -230,7 +236,10 @@
     } catch (err) {
       appendLog("Erro de rede: " + (err && err.message ? err.message : err), "log-erro");
     } finally {
-      setBusy(false);
+      // Se for stream, o stream ira desativar o setBusy no done
+      if (!streamAtivo || streamAtivo.readyState === EventSource.CLOSED) {
+          setBusy(false);
+      }
     }
   }
 
@@ -655,6 +664,12 @@
         }),
       });
       const data = await resp.json();
+      
+      if (data.status === "accepted" && data.job_id) {
+          iniciarStream(data.job_id);
+          return;
+      }
+      
       const status = data.status || "erro";
       appendLog(
         `[${status.toUpperCase()}] ${data.message || ""}`,
@@ -671,7 +686,9 @@
     } catch (err) {
       appendLog("Erro: " + err, "log-erro");
     } finally {
-      setBusy(false);
+      if (!streamAtivo || streamAtivo.readyState === EventSource.CLOSED) {
+          setBusy(false);
+      }
     }
   }
 
@@ -730,6 +747,12 @@
         body: JSON.stringify(profile),
       });
       const data = await resp.json();
+      
+      if (data.status === "accepted" && data.job_id) {
+          iniciarStream(data.job_id);
+          return;
+      }
+      
       const status = data.status || "erro";
       appendLog(
         `[${status.toUpperCase()}] ${data.message || ""}`,
@@ -746,8 +769,52 @@
     } catch (err) {
       appendLog("Erro: " + err, "log-erro");
     } finally {
-      setBusy(false);
+      if (!streamAtivo || streamAtivo.readyState === EventSource.CLOSED) {
+          setBusy(false);
+      }
     }
+  }
+
+  // -------------------------------------------------------------------- //
+  // SSE (Server-Sent Events) Stream
+  // -------------------------------------------------------------------- //
+  function iniciarStream(jobId) {
+      if (streamAtivo) streamAtivo.close();
+      setBusy(true);
+      appendLog(`Conectando ao stream do job ${jobId}...`, "log-meta");
+      
+      streamAtivo = new EventSource(`/api/stream/${jobId}`);
+      
+      streamAtivo.onmessage = function(e) {
+          try {
+              const event = JSON.parse(e.data);
+              
+              if (event.type === "step") {
+                  const step = event.data;
+                  appendLog(`[ETAPA ${step.step_id}] ${step.title} - ${step.status}: ${step.details}`, statusClasse(step.status));
+              } 
+              else if (event.type === "done") {
+                  const res = event.data;
+                  const status = res.status || "erro";
+                  appendLog(`[FINALIZADO ${status.toUpperCase()}] ${res.message}`, statusClasse(status));
+                  streamAtivo.close();
+                  setBusy(false);
+              }
+              else if (event.type === "error") {
+                  appendLog(`[ERRO CRITICO] ${event.message}`, "log-erro");
+                  streamAtivo.close();
+                  setBusy(false);
+              }
+          } catch(err) {
+              appendLog("Erro processando evento SSE: " + err, "log-erro");
+          }
+      };
+      
+      streamAtivo.onerror = function() {
+          appendLog("Conexao com o servidor perdida ou encerrada.", "log-erro");
+          streamAtivo.close();
+          setBusy(false);
+      };
   }
 
   // -------------------------------------------------------------------- //

@@ -14,7 +14,7 @@ import json
 import time
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Callable
 
 from . import ssh_client
 from .logger import get_logger, setup_run_logger, teardown_run_logger, get_run_dir
@@ -611,6 +611,7 @@ def setup_completo(
     content_flags: Optional[dict] = None,
     profile_meta: Optional[dict] = None,
     step_flags: Optional[dict] = None,
+    on_progress: Optional[Callable[[dict], None]] = None,
 ) -> dict:
     """
     Executa todas as etapas em sequencia. Erros nao criticos viram avisos
@@ -642,6 +643,11 @@ def setup_completo(
     iniciado_em = datetime.now()
     etapas: list[dict] = []
     erros: list[dict] = []
+
+    def add_etapa(e: dict):
+        etapas.append(e)
+        if on_progress:
+            on_progress({"type": "step", "data": e})
 
     contexto_relatorio: dict = {
         "portal_name": cfg.get("portal_name") or "",
@@ -690,7 +696,7 @@ def setup_completo(
 
     # ---------------- Etapa 1: SSH ----------------
     res_ssh = acao_testar_ssh(cfg)
-    etapas.append(_etapa(1, "Testar SSH", res_ssh["status"], res_ssh["message"], critical=True))
+    add_etapa(_etapa(1, "Testar SSH", res_ssh["status"], res_ssh["message"], critical=True))
     _logger.info("[1/15] Testar SSH: %s — %s", res_ssh["status"], res_ssh["message"])
     if res_ssh["status"] == "erro":
         erros.append({"etapa": 1, "mensagem": res_ssh["message"]})
@@ -699,7 +705,7 @@ def setup_completo(
 
     # ---------------- Etapa 2: validar WP ----------------
     res_wp = acao_validar_wp(cfg)
-    etapas.append(_etapa(2, "Validar WordPress", res_wp["status"], res_wp["message"], critical=True))
+    add_etapa(_etapa(2, "Validar WordPress", res_wp["status"], res_wp["message"], critical=True))
     _logger.info("[2/15] Validar WP: %s — %s", res_wp["status"], res_wp["message"])
     if res_wp["status"] == "erro":
         erros.append({"etapa": 2, "mensagem": res_wp["message"]})
@@ -715,7 +721,7 @@ def setup_completo(
 
     # ---------------- Etapa 3: validar WP-CLI ----------------
     res_wpcli = acao_validar_wpcli(cfg)
-    etapas.append(_etapa(3, "Validar WP-CLI", res_wpcli["status"], res_wpcli["message"], critical=True))
+    add_etapa(_etapa(3, "Validar WP-CLI", res_wpcli["status"], res_wpcli["message"], critical=True))
     _logger.info("[3/15] WP-CLI: %s — %s", res_wpcli["status"], res_wpcli["message"])
     if res_wpcli["status"] == "erro":
         erros.append({"etapa": 3, "mensagem": res_wpcli["message"]})
@@ -725,7 +731,7 @@ def setup_completo(
 
     # ---------------- Etapa 4: Validacao Critica REST API (Fail-Fast) ----------------
     res_rest_fast = acao_testar_rest(cfg)
-    etapas.append(_etapa(4, "Testar REST API (Fail-Fast)", res_rest_fast["status"], res_rest_fast["message"], critical=True))
+    add_etapa(_etapa(4, "Testar REST API (Fail-Fast)", res_rest_fast["status"], res_rest_fast["message"], critical=True))
     _logger.info("[4/15] REST API Fail-Fast: %s — %s", res_rest_fast["status"], res_rest_fast["message"])
     if res_rest_fast["status"] == "erro":
         erros.append({"etapa": 4, "mensagem": res_rest_fast["message"]})
@@ -737,12 +743,12 @@ def setup_completo(
 
     # ---------------- Etapa 4.5: Redis ----------------
     res_redis = acao_verificar_redis(cfg)
-    etapas.append(_etapa(4, "Verificar Redis", res_redis["status"], res_redis["message"]))
+    add_etapa(_etapa(4, "Verificar Redis", res_redis["status"], res_redis["message"]))
     _logger.info("[4.5/15] Redis: %s — %s", res_redis["status"], res_redis["message"])
 
     # ---------------- Etapa 5/6: Plugins ----------------
     if not install_plugins:
-        etapas.append(_etapa(5, "Instalar plugins", "aviso",
+        add_etapa(_etapa(5, "Instalar plugins", "aviso",
                              "desativado pela flag install_plugins=false"))
         _logger.info("[5-6/15] Plugins: pulado pela flag")
         _registrar("Instalar plugins", False)
@@ -752,7 +758,7 @@ def setup_completo(
             opcionais_extras=opcionais_extras,
             pular_plugins=pular_plugins,
         )
-        etapas.append(_etapa(5, "Instalar plugins", res_plugins["status"], res_plugins["message"]))
+        add_etapa(_etapa(5, "Instalar plugins", res_plugins["status"], res_plugins["message"]))
         _logger.info("[5-6/15] Plugins: %s — %s", res_plugins["status"], res_plugins["message"])
         detalhes_plugins = res_plugins.get("details") or {}
         contexto_relatorio["plugins_ok"] = list(detalhes_plugins.get("sucesso", []))
@@ -789,13 +795,13 @@ def setup_completo(
 
     # ---------------- Etapa 7: configurar WP ----------------
     if not configure_wp:
-        etapas.append(_etapa(7, "Configurar WordPress", "aviso",
+        add_etapa(_etapa(7, "Configurar WordPress", "aviso",
                              "desativado pela flag configure_wp=false"))
         _logger.info("[7/15] Configurar WP: pulado pela flag")
         _registrar("Configurar WordPress", False)
     else:
         res_cfg = acao_configurar_wordpress(cfg)
-        etapas.append(_etapa(7, "Configurar WordPress", res_cfg["status"], res_cfg["message"]))
+        add_etapa(_etapa(7, "Configurar WordPress", res_cfg["status"], res_cfg["message"]))
         _logger.info("[7/15] Configurar WP: %s — %s", res_cfg["status"], res_cfg["message"])
         if res_cfg["status"] != "erro":
             contexto_relatorio["seo"]["permalink"] = True
@@ -808,12 +814,12 @@ def setup_completo(
 
     # ---------------- Etapa 8: SEO tecnico (homepage definida adiante) ----------------
     if not apply_seo:
-        etapas.append(_etapa(8, "SEO tecnico (base)", "aviso",
+        add_etapa(_etapa(8, "SEO tecnico (base)", "aviso",
                              "desativado pela flag apply_seo=false "
                              "(homepage nao sera definida apos paginas)"))
         _registrar("SEO tecnico", False)
     else:
-        etapas.append(_etapa(8, "SEO tecnico (base)", "ok",
+        add_etapa(_etapa(8, "SEO tecnico (base)", "ok",
                              "permalink + indexacao aplicados; "
                              "homepage sera definida apos paginas"))
         _registrar("SEO tecnico", True)
@@ -821,7 +827,7 @@ def setup_completo(
     # ---------------- Etapa 9: REST API (Re-teste legado) ----------------
     # Apenas para compatibilidade se algo foi feito, mas ja validamos no fail-fast
     res_rest = acao_testar_rest(cfg)
-    etapas.append(_etapa(9, "Re-testar REST API", res_rest["status"], res_rest["message"]))
+    add_etapa(_etapa(9, "Re-testar REST API", res_rest["status"], res_rest["message"]))
     _logger.info("[9/15] REST (Re-teste): %s — %s", res_rest["status"], res_rest["message"])
     rest_ok = res_rest["status"] == "ok"
     if not rest_ok:
@@ -829,12 +835,12 @@ def setup_completo(
 
     # ---------------- Etapa 10: categorias ----------------
     if not create_categories:
-        etapas.append(_etapa(10, "Criar categorias", "aviso",
+        add_etapa(_etapa(10, "Criar categorias", "aviso",
                              "desativado pela flag create_categories=false"))
         _registrar("Criar categorias", False)
     elif rest_ok:
         res_cats = acao_criar_categorias(cfg)
-        etapas.append(_etapa(10, "Criar categorias", res_cats["status"], res_cats["message"]))
+        add_etapa(_etapa(10, "Criar categorias", res_cats["status"], res_cats["message"]))
         _logger.info("[10/15] Categorias: %s — %s", res_cats["status"], res_cats["message"])
         det = res_cats.get("details") or {}
         for c in det.get("criadas", []):
@@ -843,18 +849,18 @@ def setup_completo(
             erros.append({"etapa": 10, "mensagem": f"{f.get('categoria')}: {f.get('motivo')}"})
         _registrar("Criar categorias", True)
     else:
-        etapas.append(_etapa(10, "Criar categorias", "aviso", "REST nao disponivel — pulado"))
+        add_etapa(_etapa(10, "Criar categorias", "aviso", "REST nao disponivel — pulado"))
         _registrar("Criar categorias", False)
 
     # ---------------- Etapa 11: paginas ----------------
     paginas_criadas: list = []
     if not create_pages:
-        etapas.append(_etapa(11, "Criar paginas", "aviso",
+        add_etapa(_etapa(11, "Criar paginas", "aviso",
                              "desativado pela flag create_pages=false"))
         _registrar("Criar paginas", False)
     elif rest_ok:
         res_pag = acao_criar_paginas(cfg)
-        etapas.append(_etapa(11, "Criar paginas", res_pag["status"], res_pag["message"]))
+        add_etapa(_etapa(11, "Criar paginas", res_pag["status"], res_pag["message"]))
         _logger.info("[11/15] Paginas: %s — %s", res_pag["status"], res_pag["message"])
         det = res_pag.get("details") or {}
         for p in det.get("criadas", []):
@@ -888,24 +894,24 @@ def setup_completo(
                     {"etapa": 8, "mensagem": f"falha ao definir homepage: {exc}"}
                 )
     else:
-        etapas.append(_etapa(11, "Criar paginas", "aviso", "REST nao disponivel — pulado"))
+        add_etapa(_etapa(11, "Criar paginas", "aviso", "REST nao disponivel — pulado"))
         _registrar("Criar paginas", False)
 
     # ---------------- Etapa 12: criar usuarios ----------------
     if not create_users:
-        etapas.append(_etapa(12, "Criar usuarios", "aviso",
+        add_etapa(_etapa(12, "Criar usuarios", "aviso",
                              "desativado pela flag create_users=false"))
         _registrar("Criar usuarios", False)
     else:
         usuarios_cfg = cfg.get("users") or []
         if not isinstance(usuarios_cfg, list) or not usuarios_cfg:
-            etapas.append(_etapa(12, "Criar usuarios", "aviso",
+            add_etapa(_etapa(12, "Criar usuarios", "aviso",
                                  "nenhum usuario definido em users[]"))
             _logger.info("[12/15] Usuarios: nenhum configurado")
             _registrar("Criar usuarios", False)
         else:
             res_users = acao_criar_usuarios(cfg)
-            etapas.append(_etapa(12, "Criar usuarios", res_users["status"],
+            add_etapa(_etapa(12, "Criar usuarios", res_users["status"],
                                  res_users["message"]))
             _logger.info("[12/15] Usuarios: %s — %s",
                          res_users["status"], res_users["message"])
@@ -922,19 +928,19 @@ def setup_completo(
 
     # ---------------- Etapa 13: conteudo inicial ----------------
     if not create_test_post:
-        etapas.append(_etapa(13, "Criar conteudo inicial", "aviso",
+        add_etapa(_etapa(13, "Criar conteudo inicial", "aviso",
                              "desativado pela flag create_test_post=false"))
         _registrar("Criar conteudo inicial", False)
     elif rest_ok:
         res_post = acao_criar_conteudo_inicial(cfg)
-        etapas.append(_etapa(13, "Criar conteudo inicial", res_post["status"],
+        add_etapa(_etapa(13, "Criar conteudo inicial", res_post["status"],
                              res_post["message"]))
         _logger.info("[13/15] Conteudo: %s — %s", res_post["status"], res_post["message"])
         if res_post["status"] == "erro":
             erros.append({"etapa": 13, "mensagem": res_post["message"]})
         _registrar("Criar conteudo inicial", True)
     else:
-        etapas.append(_etapa(13, "Criar conteudo inicial", "aviso",
+        add_etapa(_etapa(13, "Criar conteudo inicial", "aviso",
                              "REST nao disponivel — pulado"))
         _registrar("Criar conteudo inicial", False)
 
@@ -945,22 +951,25 @@ def setup_completo(
             wp = _abrir_wpcli(cfg, client)
             wp.flush_rewrite()
             wp.flush_cache()
-            etapas.append(_etapa(14, "Flush rewrite + cache", "ok",
+            add_etapa(_etapa(14, "Flush rewrite + cache", "ok",
                                  "rewrite rules e object cache atualizados"))
             _logger.info("[14/15] Flush rewrite/cache: ok")
             _registrar("Flush rewrite + cache", True)
         finally:
             ssh_client.fechar(client)
     except Exception as exc:
-        etapas.append(_etapa(14, "Flush rewrite + cache", "aviso", str(exc)))
+        add_etapa(_etapa(14, "Flush rewrite + cache", "aviso", str(exc)))
         erros.append({"etapa": 14, "mensagem": str(exc)})
         _registrar("Flush rewrite + cache", False)
 
     # ---------------- Etapa 15: relatorio ----------------
-    return _finalizar(
+    resultado = _finalizar(
         cfg, contexto_relatorio, etapas, erros, inicio,
         critico=False, generate_report=generate_report,
     )
+    if on_progress:
+        on_progress({"type": "done", "data": resultado})
+    return resultado
 
 
 def _finalizar(
@@ -971,13 +980,21 @@ def _finalizar(
     inicio: float,
     critico: bool,
     generate_report: bool = True,
+    add_etapa: Optional[Callable[[dict], None]] = None,
 ) -> dict:
     contexto_relatorio["duracao_segundos"] = time.monotonic() - inicio
     contexto_relatorio["erros"] = list(erros)
 
     relatorio_path: Optional[str] = None
+    
+    def _safe_add(e: dict):
+        if add_etapa:
+            add_etapa(e)
+        else:
+            etapas.append(e)
+
     if not generate_report:
-        etapas.append(_etapa(15, "Gerar relatorio", "aviso",
+        _safe_add(_etapa(15, "Gerar relatorio", "aviso",
                              "desativado pela flag generate_report=false"))
         # Se houver lista de etapas executadas, registra que esta foi pulada
         pul = contexto_relatorio.get("etapas_puladas")
@@ -987,12 +1004,12 @@ def _finalizar(
         try:
             caminho = gerar_relatorio(contexto_relatorio)
             relatorio_path = str(caminho)
-            etapas.append(_etapa(15, "Gerar relatorio", "ok", f"gerado em {caminho}"))
+            _safe_add(_etapa(15, "Gerar relatorio", "ok", f"gerado em {caminho}"))
             exec_list = contexto_relatorio.get("etapas_executadas")
             if isinstance(exec_list, list):
                 exec_list.append("Gerar relatorio")
         except Exception as exc:
-            etapas.append(_etapa(15, "Gerar relatorio", "erro", str(exc)))
+            _safe_add(_etapa(15, "Gerar relatorio", "erro", str(exc)))
             erros.append({"etapa": 15, "mensagem": str(exc)})
 
     if critico:

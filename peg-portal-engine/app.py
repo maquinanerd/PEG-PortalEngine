@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+import queue
+import uuid
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable
@@ -48,6 +51,62 @@ app = Flask(
     static_folder="static",
 )
 app.config["JSON_SORT_KEYS"] = False
+
+_ACTIVE_JOBS = {}
+
+@app.get("/api/stream/<job_id>")
+@requires_auth
+def api_stream(job_id):
+    if job_id not in _ACTIVE_JOBS:
+        return _erro_json("Job nao encontrado", status_http=404)
+        
+    q = _ACTIVE_JOBS[job_id]
+    
+    def generate():
+        while True:
+            try:
+                event = q.get(timeout=30)
+                if event is None:
+                    break
+                yield f"data: {json.dumps(event)}\n\n"
+                if event.get("type") in ("done", "error"):
+                    break
+            except queue.Empty:
+                # Keep-alive para evitar desconexão por timeout do Nginx/Browser
+                yield ": keep-alive\n\n"
+    
+    return Response(generate(), mimetype="text/event-stream")
+
+def _start_setup_job(cfg, opcionais_extras, skip, profile_meta, step_flags):
+    job_id = str(uuid.uuid4())
+    q = queue.Queue()
+    _ACTIVE_JOBS[job_id] = q
+    
+    def on_progress(event):
+        q.put(event)
+        
+    def run_setup():
+        try:
+            tasks.setup_completo(
+                cfg,
+                opcionais_extras=opcionais_extras,
+                pular_plugins=skip,
+                profile_meta=profile_meta,
+                step_flags=step_flags,
+                on_progress=on_progress,
+            )
+        except Exception as exc:
+            _logger.exception("Erro no job %s: %s", job_id, exc)
+            q.put({"type": "error", "message": str(exc)})
+            q.put({"type": "done", "data": {"status": "erro", "message": str(exc)}})
+            
+    threading.Thread(target=run_setup, daemon=True).start()
+    
+    return jsonify({
+        "status": "accepted",
+        "job_id": job_id,
+        "message": "Setup iniciado em background."
+    })
 
 
 # ---------------------------------------------------------------------- #
@@ -420,24 +479,7 @@ def api_setup_from_profile():
     profile_meta["plugins_optional"] = optional
 
     try:
-        resultado = tasks.setup_completo(
-            cfg,
-            opcionais_extras=opcionais_extras,
-            pular_plugins=skip,
-            profile_meta=profile_meta,
-            step_flags=step_flags,
-        )
-        # Anexa identificador do profile e flags na resposta
-        if isinstance(resultado, dict):
-            resultado.setdefault("details", {})
-            if isinstance(resultado["details"], dict):
-                resultado["details"]["profile"] = {
-                    "slug": profile_meta.get("slug"),
-                    "name": profile_meta.get("name"),
-                    "version": profile_meta.get("version"),
-                }
-                resultado["details"]["step_flags"] = step_flags
-        return jsonify(resultado)
+        return _start_setup_job(cfg, opcionais_extras, skip, profile_meta, step_flags)
     except Exception as exc:
         _logger.exception("Erro em setup-from-profile: %s", exc)
         return _erro_json(f"Erro interno: {exc}", status_http=500)
@@ -534,24 +576,7 @@ def api_upload_and_run():
     profile_meta["plugins_optional"] = optional
 
     try:
-        resultado = tasks.setup_completo(
-            cfg,
-            opcionais_extras=opcionais_extras,
-            pular_plugins=skip,
-            profile_meta=profile_meta,
-            step_flags=step_flags,
-        )
-        if isinstance(resultado, dict):
-            resultado.setdefault("details", {})
-            if isinstance(resultado["details"], dict):
-                resultado["details"]["profile"] = {
-                    "slug": profile_meta.get("slug"),
-                    "name": profile_meta.get("name"),
-                    "version": profile_meta.get("version"),
-                }
-                resultado["details"]["step_flags"] = step_flags
-                resultado["details"]["origem"] = "upload-and-run"
-        return jsonify(resultado)
+        return _start_setup_job(cfg, opcionais_extras, skip, profile_meta, step_flags)
     except Exception as exc:
         _logger.exception("Erro em upload-and-run: %s", exc)
         return _erro_json(f"Erro interno: {exc}", status_http=500)
