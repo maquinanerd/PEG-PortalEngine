@@ -24,6 +24,9 @@ _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _initialized = False
 _log_file_path: Optional[Path] = None
 
+_run_file_handler: Optional[logging.FileHandler] = None
+_run_dir: Optional[Path] = None
+
 # Lista de senhas em memoria local para sanitizacao dinamica
 _SENSITIVE_WORDS: Set[str] = set()
 
@@ -133,3 +136,50 @@ def get_log_file_path() -> Optional[Path]:
 def log_credencial_segura(_valor: object) -> str:
     """Sempre retorna a mascara — nunca exponha credenciais em logs."""
     return "****"
+
+# ---------------------------------------------------------------------- #
+# Isolamento de Execucao (Run Logger)
+# ---------------------------------------------------------------------- #
+def setup_run_logger(slug: str) -> Path:
+    """
+    Configura um FileHandler temporario para a execucao atual e cria
+    a pasta de run correspondente, retornando o Path dessa pasta.
+    """
+    global _run_file_handler, _run_dir
+    logger = get_logger()
+    
+    # Se ja tiver um rodando, encerra (embora o ideal seja rodar uma por vez)
+    teardown_run_logger()
+        
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_slug = slug.replace("/", "_").replace("\\", "_")
+    
+    run_path = _logs_dir() / "runs" / f"{safe_slug}_{timestamp}"
+    run_path.mkdir(parents=True, exist_ok=True)
+    
+    _run_dir = run_path
+    
+    log_path = run_path / "logs.txt"
+    _run_file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    level = _resolve_level(os.getenv("LOG_LEVEL"))
+    _run_file_handler.setLevel(level)
+    
+    formatter = logging.Formatter(_LOG_FORMAT, datefmt=_DATE_FORMAT)
+    _run_file_handler.setFormatter(formatter)
+    logger.addHandler(_run_file_handler)
+    
+    return run_path
+
+def get_run_dir() -> Optional[Path]:
+    """Retorna o diretorio da execucao atual."""
+    return _run_dir
+
+def teardown_run_logger():
+    """Remove o handler de log temporario."""
+    global _run_file_handler, _run_dir
+    if _run_file_handler:
+        logger = logging.getLogger(_LOGGER_NAME)
+        logger.removeHandler(_run_file_handler)
+        _run_file_handler.close()
+        _run_file_handler = None
+    _run_dir = None

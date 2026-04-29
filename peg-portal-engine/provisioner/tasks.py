@@ -10,13 +10,14 @@ em erros criticos (SSH ou WP invalidos) e registrando os demais como avisos.
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Optional
 
 from . import ssh_client
-from .logger import get_logger
+from .logger import get_logger, setup_run_logger, teardown_run_logger, get_run_dir
 from .wp_rest import WPRest
 from .wpcli import WPCLI
 from .utils import (
@@ -634,6 +635,9 @@ def setup_completo(
     create_test_post  = flags["create_test_post"]
     generate_report   = flags["generate_report"]
 
+    slug_portal = cfg.get("portal_name", "portal")
+    setup_run_logger(slug_portal)
+
     inicio = time.monotonic()
     iniciado_em = datetime.now()
     etapas: list[dict] = []
@@ -1001,7 +1005,7 @@ def _finalizar(
         msg = "Setup concluido com sucesso"
         status = "ok"
 
-    return _resp(
+    resultado_final = _resp(
         status,
         msg,
         {
@@ -1011,3 +1015,14 @@ def _finalizar(
             "duracao_segundos": round(contexto_relatorio["duracao_segundos"], 2),
         },
     )
+    
+    # Grava result.json
+    try:
+        run_dir = get_run_dir()
+        if run_dir:
+            json_path = run_dir / "result.json"
+            json_path.write_text(json.dumps(resultado_final, indent=2, ensure_ascii=False), encoding="utf-8")
+    finally:
+        teardown_run_logger()
+        
+    return resultado_final

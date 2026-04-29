@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import shlex
+import time
 from typing import Any, Optional
 
 import paramiko
@@ -198,12 +199,23 @@ class WPCLI:
             "plugin install",
             flags=[shlex.quote(slug), "--activate"],
         )
-        res = self._run(cmd, timeout=240)
-        if res["exit_code"] == 0:
-            return {"ok": True, "msg": f"plugin {slug} instalado e ativado"}
+        
+        max_retries = 3
+        delays = [5, 10, 15]
+        
+        res = None
+        for attempt in range(max_retries):
+            res = self._run(cmd, timeout=240)
+            if res["exit_code"] == 0:
+                return {"ok": True, "msg": f"plugin {slug} instalado e ativado"}
+                
+            if attempt < max_retries - 1:
+                _logger.warning("Falha ao instalar %s (tentativa %d/%d). Retentando em %ds...", slug, attempt + 1, max_retries, delays[attempt])
+                time.sleep(delays[attempt])
+                
         return {
             "ok": False,
-            "msg": f"falha ao instalar+ativar {slug}: "
+            "msg": f"falha ao instalar+ativar {slug} (apos {max_retries} tentativas): "
                    f"{sanitize_sensitive_data(res['stderr'].strip() or res['stdout'].strip())}",
         }
 

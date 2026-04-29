@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PEG MediaOS — Superdocumentação Visual Final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F3EFE4; --paper:#FFFDF6; --paper2:#F8F4EA; --ink:#101010;
+  --muted:#625E56; --muted2:#938A7A; --line:#D9D1C2; --red:#8D1B1B;
+  --red2:#5F1111; --redBg:rgba(141,27,27,.085); --gold:#B48A3B; --green:#2E6B45;
+  --yellow:#B88411; --danger:#B42318; --blue:#263F63; --mono:'JetBrains Mono',monospace;
+  --font:'Montserrat',sans-serif; --shadow:0 24px 60px rgba(17,17,17,.08);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold));width:0;z-index:9999}
+.layout{display:grid;grid-template-columns:292px minmax(0,1fr);max-width:1580px;margin:0 auto}.sidebar{position:sticky;top:0;height:100vh;padding:28px 18px;border-right:1px solid var(--line);background:rgba(243,239,228,.94);backdrop-filter:blur(10px);overflow:auto}.brand{padding:14px 14px 18px;border-bottom:1px solid var(--line);margin-bottom:16px}.brand .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:700}.brand h1{font-size:17px;line-height:1;margin:9px 0 8px;font-weight:900;letter-spacing:-.04em;text-transform:uppercase}.brand p{font-size:9.35px;color:var(--muted);line-height:1.55;margin:0}.nav-title{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-weight:700;margin:18px 14px 10px}#nav{display:flex;flex-direction:column;gap:3px}#nav a{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;text-decoration:none;color:var(--muted);font-size:10.2px;font-weight:750;padding:9px 12px;border-radius:12px;border:1px solid transparent;line-height:1.25}#nav a span:first-child{font-family:var(--mono);font-size:8.5px;color:var(--muted2)}#nav a:hover{background:rgba(255,255,255,.6);color:var(--ink)}#nav a.active{background:var(--ink);color:#fff;border-color:var(--ink)}#nav a.active span:first-child{color:var(--gold)}.side-card{margin:18px 0 0;padding:14px;border:1px solid var(--line);background:var(--paper);border-radius:18px}.side-card b{display:block;font-size:9.35px;text-transform:uppercase;letter-spacing:.12em;color:var(--red);margin-bottom:7px}.side-card p{font-size:9.78px;color:var(--muted);line-height:1.55;margin:0}.legend-mini{display:grid;gap:6px;margin-top:12px}.legend-mini span{font-family:var(--mono);font-size:8.5px;color:var(--muted);padding:5px 7px;border:1px solid var(--line);border-radius:999px;background:#fff}
+main{min-width:0;padding:0 48px 80px}.hero{padding:72px 0 46px;border-bottom:1px solid var(--line)}.hero-grid{display:grid;grid-template-columns:minmax(0,1.2fr) 430px;gap:34px;align-items:stretch}.eyebrow{font-family:var(--mono);font-size:9.35px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:800}.hero h1{font-size:clamp(47.6px,7vw,90.1px);line-height:.87;letter-spacing:-.075em;text-transform:uppercase;margin:18px 0 20px;font-weight:900}.hero h1 span{color:var(--red)}.hero p{font-size:14.45px;line-height:1.85;color:#292622;max-width:900px;margin:0}.hero-panel{background:var(--ink);color:#fff;border-radius:28px;padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;min-height:390px;position:relative;overflow:hidden}.hero-panel:before{content:"";position:absolute;inset:-100px -50px auto auto;width:270px;height:270px;background:radial-gradient(circle,rgba(141,27,27,.55),transparent 70%);border-radius:50%}.hp-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;color:#E8B95B;text-transform:uppercase;font-weight:800}.hero-panel h3{font-size:22.1px;line-height:1.08;letter-spacing:-.04em;margin:10px 0 14px;position:relative}.hero-panel p{color:rgba(255,255,255,.68);font-size:11.05px;line-height:1.7;position:relative}.hp-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:22px;position:relative}.hp-metric{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:13px;background:rgba(255,255,255,.04)}.hp-metric b{font-size:20.4px;display:block;letter-spacing:-.04em}.hp-metric span{font-size:8.5px;color:rgba(255,255,255,.55);font-family:var(--mono);text-transform:uppercase;letter-spacing:.12em}.note{font-size:9.35px;color:var(--muted);line-height:1.65;margin-top:14px;border-left:3px solid var(--red);padding-left:12px}.section{padding:54px 0;border-bottom:1px solid var(--line)}.section:last-child{border-bottom:none}.s-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:start;margin-bottom:26px}.s-head h2{font-size:28.05px;line-height:1.03;letter-spacing:-.045em;text-transform:uppercase;margin:8px 0 0;font-weight:900}.s-head p{margin:8px 0 0;color:var(--muted);font-size:11.9px;line-height:1.75;max-width:780px}.section-num{font-family:var(--mono);font-size:9.35px;color:var(--muted2);font-weight:800;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:var(--paper)}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 34px rgba(17,17,17,.035)}.card.dark{background:var(--ink);color:#fff;border-color:var(--ink)}.card h3{font-size:15.3px;line-height:1.2;letter-spacing:-.025em;margin:0 0 10px;font-weight:900}.card p{font-size:11.47px;line-height:1.72;color:var(--muted);margin:0 0 12px}.card.dark p{color:rgba(255,255,255,.7)}.label{font-family:var(--mono);font-size:8.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--red);font-weight:800;margin-bottom:10px}.list{list-style:none;padding:0;margin:12px 0 0}.list li{font-size:11.05px;color:var(--muted);line-height:1.6;padding:8px 0;border-top:1px solid var(--line);display:flex;gap:9px}.list li:before{content:"—";color:var(--red);font-weight:900}.dark .list li{border-top-color:rgba(255,255,255,.12);color:rgba(255,255,255,.72)}.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 8px;font-family:var(--mono);font-size:8.5px;letter-spacing:.04em;font-weight:800;text-transform:uppercase;border:1px solid transparent;white-space:nowrap}.ok{background:rgba(46,107,69,.10);color:var(--green);border-color:rgba(46,107,69,.24)}.inf{background:rgba(184,132,17,.12);color:#875F00;border-color:rgba(184,132,17,.26)}.bad{background:rgba(180,35,24,.11);color:var(--danger);border-color:rgba(180,35,24,.25)}.neutral{background:rgba(16,16,16,.06);color:#333;border-color:rgba(16,16,16,.12)}.badge-row{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}.mini{font-size:9.35px;color:var(--muted2);line-height:1.55}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:22px;background:var(--paper);box-shadow:0 14px 34px rgba(17,17,17,.03)}table{width:100%;border-collapse:collapse;min-width:760px}th{background:var(--ink);color:#fff;text-align:left;font-family:var(--mono);font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;padding:13px 14px}td{font-size:10.88px;color:var(--muted);line-height:1.55;padding:13px 14px;border-top:1px solid var(--line);vertical-align:top}td:first-child{color:var(--ink);font-weight:800}tr:nth-child(even) td{background:rgba(255,255,255,.42)}code{font-family:var(--mono);font-size:9.35px;background:rgba(16,16,16,.06);padding:2px 5px;border-radius:6px;color:var(--red2)}.flow{display:flex;gap:8px;align-items:stretch;overflow:auto;padding:4px 0}.flow .step{min-width:145px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;position:relative}.flow .step:not(:last-child):after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--red);font-weight:900}.step b{display:block;font-size:10.2px;text-transform:uppercase;letter-spacing:-.01em}.step span{display:block;margin-top:6px;font-size:9.35px;color:var(--muted);line-height:1.45}.map{background:var(--ink);border-radius:28px;padding:26px;color:#fff;box-shadow:var(--shadow)}.map-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.map-box{border:1px solid rgba(255,255,255,.13);border-radius:18px;background:rgba(255,255,255,.045);padding:16px}.map-box b{font-size:11.05px;text-transform:uppercase;letter-spacing:.02em}.map-box p{font-size:10.2px;color:rgba(255,255,255,.64);line-height:1.58;margin:6px 0 0}.arrow-title{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#E8B95B;margin-bottom:12px}.layers{display:grid;gap:10px}.layer{display:grid;grid-template-columns:220px 1fr;gap:0;border:1px solid var(--line);border-radius:20px;background:var(--paper);overflow:hidden}.layer b{background:var(--ink);color:#fff;padding:18px;font-family:var(--mono);font-size:9.35px;letter-spacing:.12em;text-transform:uppercase}.layer div{padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:10.2px;color:var(--muted);background:#fff}.timeline{display:grid;gap:9px}.tl{display:grid;grid-template-columns:54px 1fr 150px;border:1px solid var(--line);border-radius:18px;background:var(--paper);overflow:hidden}.tl-num{background:var(--ink);color:var(--gold);font-family:var(--mono);font-weight:900;display:flex;align-items:center;justify-content:center}.tl-body{padding:15px 18px}.tl-body b{display:block;font-size:11.9px;text-transform:uppercase}.tl-body span{font-size:10.62px;color:var(--muted);line-height:1.55;display:block;margin-top:5px}.tl-owner{background:var(--paper2);border-left:1px solid var(--line);padding:14px;display:flex;align-items:center;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.action-table td:nth-child(4),.action-table td:nth-child(5){font-weight:700}.footer{padding:34px 0 0;color:var(--muted2);font-size:10.2px;font-family:var(--mono)}
+@media(max-width:1100px){.layout{display:block}.sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:0 22px 60px}.hero-grid,.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}.hero-panel{min-height:auto}.s-head{grid-template-columns:1fr}.layer{grid-template-columns:1fr}.tl{grid-template-columns:44px 1fr}.tl-owner{grid-column:2;border-left:0;border-top:1px solid var(--line)}.map-grid{grid-template-columns:1fr}}
+
+/* =========================================================
+   PEG MEDIAOS VISUAL SYSTEM OVERRIDE — FINAL
+   Visual language: premium SaaS, off-white canvas, signal orange,
+   deep brown/black contrast, rounded editorial cards.
+   ========================================================= */
+:root{
+  --cream:#F5F3F1; --paper:#FFFDFB; --paper2:#FAF3EF; --ink:#130600; --ink2:#1B0B03;
+  --muted:#6F6863; --muted2:#A89D96; --line:#E8DDD6; --red:#FF5300; --red2:#D94400;
+  --redBg:rgba(255,83,0,.10); --gold:#FF8A4D; --green:#1D9E75; --yellow:#FFB36A;
+  --danger:#C7441C; --blue:#364B63; --peach:#FFCDB6; --offwhite:#F5F3F1;
+  --mono:'JetBrains Mono',monospace; --font:'Montserrat',sans-serif;
+  --shadow:0 30px 90px rgba(27,11,3,.10); --shadow-soft:0 18px 48px rgba(27,11,3,.055);
+  --radius-xl:34px; --radius-lg:24px;
+}
+body{background:radial-gradient(circle at 86% -10%, rgba(255,83,0,.18), transparent 34%),radial-gradient(circle at 4% 4%, rgba(255,205,182,.55), transparent 32%),linear-gradient(135deg,#F5F3F1 0%,#FFFDFB 42%,#F4E9E3 100%);color:var(--ink);font-family:var(--font)}
+#progress{height:4px;background:linear-gradient(90deg,var(--ink),var(--red),var(--gold));box-shadow:0 0 24px rgba(255,83,0,.45)}
+.layout{grid-template-columns:310px minmax(0,1fr);max-width:1720px;gap:0;padding:18px}.sidebar{top:18px;height:calc(100vh - 36px);padding:22px 16px;border:1px solid rgba(232,221,214,.85);border-radius:30px;background:rgba(255,253,251,.72);box-shadow:var(--shadow-soft);backdrop-filter:blur(22px);scrollbar-width:thin}.brand{position:relative;padding:20px 18px 22px;margin-bottom:18px;border:1px solid rgba(232,221,214,.92);border-radius:24px;background:linear-gradient(145deg,#FFFDFB,#FAF3EF);box-shadow:0 18px 40px rgba(27,11,3,.045);overflow:hidden}.brand:before{content:"";position:absolute;right:-38px;top:-46px;width:126px;height:126px;border-radius:36px;background:linear-gradient(135deg,var(--red),var(--gold));transform:rotate(18deg);opacity:.95}.brand:after{content:"";position:absolute;right:19px;top:26px;width:40px;height:40px;background:var(--paper);border-radius:12px;box-shadow:inset 0 0 0 10px var(--red)}.brand .k,.eyebrow,.label{color:var(--red);letter-spacing:.18em}.brand h1{font-size:26.35px;line-height:.86;letter-spacing:-.075em;text-transform:none;font-weight:900;margin:12px 0 12px;position:relative;z-index:1}.brand p{font-size:10.71px;line-height:1.55;color:var(--muted);max-width:210px;position:relative;z-index:1}
+.nav-title{color:var(--muted2);margin:18px 16px 9px}#nav{gap:5px}#nav a{grid-template-columns:31px 1fr;padding:11px 13px;border-radius:17px;font-size:11.05px;font-weight:700;color:var(--muted);transition:.18s ease;background:transparent}#nav a span:first-child{color:var(--muted2)}#nav a:hover{background:rgba(255,83,0,.075);color:var(--ink);transform:translateX(2px)}#nav a.active{background:var(--ink2);color:#fff;border-color:rgba(255,83,0,.24);box-shadow:0 12px 26px rgba(27,11,3,.20)}#nav a.active span:first-child{color:var(--gold)}.side-card{border-radius:24px;border-color:var(--line);background:rgba(255,253,251,.78);box-shadow:var(--shadow-soft)}.side-card b{color:var(--red)}.legend-mini span{background:#fff;border-color:var(--line);border-radius:999px}
+main{padding:0 34px 72px 42px}.hero{padding:54px 0 50px;border-bottom:0}.hero-grid{grid-template-columns:minmax(0,1.1fr) 450px;gap:22px}.hero .eyebrow{display:inline-flex;align-items:center;gap:10px;padding:8px 12px;border-radius:999px;background:rgba(255,83,0,.10);border:1px solid rgba(255,83,0,.16);font-size:8.5px}.hero h1{font-size:clamp(54.4px,7vw,100.3px);line-height:.84;letter-spacing:-.085em;text-transform:none;margin:22px 0 24px;font-weight:900}.hero h1 span{color:var(--red)}.hero p{font-size:15.3px;line-height:1.78;color:#322924;max-width:980px}.note{margin-top:22px;border-left:0;padding:16px 18px;border-radius:20px;background:rgba(255,83,0,.085);border:1px solid rgba(255,83,0,.14);font-size:10.37px;color:#6C4B3A}.hero-panel{background:linear-gradient(145deg,var(--ink),var(--ink2));border-radius:34px;padding:32px;min-height:410px;box-shadow:0 34px 100px rgba(19,6,0,.22);border:1px solid rgba(255,255,255,.08)}.hero-panel:before{inset:-80px -60px auto auto;width:310px;height:310px;background:radial-gradient(circle,rgba(255,83,0,.72),rgba(255,138,77,.12) 44%,transparent 70%)}.hero-panel h3{font-size:26.35px;letter-spacing:-.055em}.hero-panel p{font-size:11.9px;color:rgba(255,255,255,.72)}.hp-label{color:var(--gold)}.hp-row{gap:10px}.hp-metric{border-radius:22px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.13)}.hp-metric b{font-size:28.9px;color:#fff}.hp-metric span{color:rgba(255,255,255,.62)}
+.section{padding:36px 0;border-bottom:0}.s-head{margin-bottom:18px;padding:26px 28px;border-radius:30px;background:rgba(255,253,251,.64);border:1px solid rgba(232,221,214,.76);box-shadow:var(--shadow-soft);backdrop-filter:blur(18px)}.s-head h2{font-size:35.7px;line-height:.96;letter-spacing:-.065em;text-transform:none}.s-head p{font-size:12.75px;line-height:1.7}.section-num{border-radius:999px;background:var(--ink2);color:#fff;border-color:var(--ink2);box-shadow:0 10px 22px rgba(27,11,3,.16)}.grid-2,.grid-3,.grid-4{gap:18px}.card{border-radius:28px;padding:26px;background:rgba(255,253,251,.78);border:1px solid rgba(232,221,214,.82);box-shadow:var(--shadow-soft);backdrop-filter:blur(18px);transition:.18s ease}.card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.card.dark{background:linear-gradient(145deg,var(--ink),var(--ink2));border-color:rgba(255,255,255,.08);box-shadow:0 30px 80px rgba(19,6,0,.20)}.card h3{font-size:17.85px;letter-spacing:-.045em}.card p{font-size:12.07px}.badge{border-radius:999px;padding:7px 10px;font-weight:800}.ok{background:rgba(29,158,117,.10);color:#11775B;border-color:rgba(29,158,117,.24)}.inf{background:rgba(255,138,77,.15);color:#9E4B11;border-color:rgba(255,138,77,.28)}.bad{background:rgba(255,83,0,.11);color:#B23A00;border-color:rgba(255,83,0,.24)}.neutral{background:rgba(19,6,0,.055);color:var(--ink);border-color:rgba(19,6,0,.10)}.list li{border-top-color:rgba(232,221,214,.9);font-size:11.56px}.list li:before{color:var(--red)}
+.table-wrap{border-radius:28px;border-color:rgba(232,221,214,.88);background:rgba(255,253,251,.82);box-shadow:var(--shadow-soft);backdrop-filter:blur(18px)}th{background:var(--ink2);padding:16px 17px;color:#fff}td{padding:15px 17px;font-size:11.39px}tr:nth-child(even) td{background:rgba(255,83,0,.035)}code{background:rgba(255,83,0,.09);color:var(--red2)}.map{border-radius:34px;background:linear-gradient(145deg,var(--ink),var(--ink2));box-shadow:0 34px 100px rgba(19,6,0,.22);border:1px solid rgba(255,255,255,.08)}.map-box{border-radius:24px;background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.13)}.map-box b{font-size:11.9px}.arrow-title{color:var(--gold)}.layer{border-radius:26px;border-color:rgba(232,221,214,.85);background:rgba(255,253,251,.78);box-shadow:var(--shadow-soft)}.layer b{background:var(--ink2);color:#fff}.pill{border-color:rgba(232,221,214,.9);background:#fff;border-radius:999px}.tl{border-radius:26px;border-color:rgba(232,221,214,.88);background:rgba(255,253,251,.82);box-shadow:var(--shadow-soft)}.tl-num{background:var(--ink2);color:var(--gold)}.tl-body b{letter-spacing:-.02em}.tl-owner{background:rgba(255,83,0,.055);color:#8B4B2E}.footer{color:var(--muted2)}.flow .step{border-radius:24px;background:rgba(255,253,251,.82);box-shadow:var(--shadow-soft)}.flow .step:not(:last-child):after{color:var(--red)}
+#pipeline-animado .coral rect{fill:#FFF2EB;stroke:var(--red)}#pipeline-animado .coral text{fill:var(--ink2)}#pipeline-animado .purple rect{fill:#FFF7F2;stroke:var(--gold)}#pipeline-animado .purple text{fill:#7C3211}#pipeline-animado .amber rect{fill:#FFF0E7;stroke:var(--red)}#pipeline-animado .amber text{fill:#7C2300}#pipeline-animado .teal rect{fill:#E8FAF5;stroke:var(--green)}#pipeline-animado .teal text{fill:#0E5E48}#pipeline-animado .amber-lt rect{fill:#FFF3EA;stroke:var(--gold)}#pipeline-animado .amber-lt text{fill:#8C430E}#pipeline-animado .blue rect{fill:#EEF5FA;stroke:#5B7B96}#pipeline-animado .blue text{fill:#2C4A62}#pipeline-animado .gray rect{fill:#F8F5F1;stroke:#BBAFA8}#pipeline-animado .gray text{fill:#4A423D}#pipeline-animado .detail-panel{border-radius:28px;background:rgba(255,253,251,.82);box-shadow:var(--shadow-soft);border-color:rgba(232,221,214,.88)}#pipeline-animado .dp-name{letter-spacing:-.045em}#pipeline-animado .b-warn{background:rgba(255,138,77,.14);color:#91450D;border-color:rgba(255,138,77,.28)}#pipeline-animado .b-ask{background:rgba(255,83,0,.10);color:#B83D00;border-color:rgba(255,83,0,.22)}#pipeline-animado .dp-note{background:rgba(255,83,0,.08);border-color:rgba(255,83,0,.18);color:#8B3F19}
+@media(max-width:1100px){.layout{padding:0}.sidebar{height:auto;border-radius:0;top:0}main{padding:0 16px 52px}.s-head h2{font-size:27.2px}.hero h1{font-size:49.3px}.hero-grid{grid-template-columns:1fr}.hero-panel{min-height:auto}}
+
+
+/* =========================================================
+   PENTE FINO FINAL — brand v10, tipografia, overflow e roadmap
+   ========================================================= */
+:root{--font:'Montserrat',sans-serif;--mono:'JetBrains Mono',monospace;}
+html,body{max-width:100%;overflow-x:hidden;}
+body{font-family:var(--font)!important;}
+.layout{max-width:1580px;margin:0 auto;grid-template-columns:292px minmax(0,1fr);padding:18px;gap:0;}
+.sidebar{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;}
+.brand.brand-lockup-peg{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:center;padding:16px 14px 18px;margin-bottom:16px;border:1px solid rgba(232,221,214,.92);border-radius:24px;background:linear-gradient(145deg,#FFFDFB,#FAF3EF);box-shadow:0 18px 40px rgba(27,11,3,.045);overflow:hidden;position:relative;}
+.brand.brand-lockup-peg:before{content:"";position:absolute;right:-38px;top:-46px;width:126px;height:126px;border-radius:36px;background:linear-gradient(135deg,var(--red),var(--gold));transform:rotate(18deg);opacity:.95;display:block;}
+.brand.brand-lockup-peg:after{content:"";position:absolute;right:19px;top:26px;width:40px;height:40px;background:var(--paper);border-radius:12px;box-shadow:inset 0 0 0 10px var(--red);display:block;}
+.brand.brand-lockup-peg .peg-logo{width:58px;height:58px;display:block;position:relative;z-index:1;filter:drop-shadow(0 16px 24px rgba(255,83,0,.20));}
+.brand.brand-lockup-peg .brand-copy{min-width:0;position:relative;z-index:1;}
+.brand.brand-lockup-peg .k{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:800;margin-bottom:8px;white-space:normal;}
+.brand.brand-lockup-peg h1{font-size:26px;line-height:.88;letter-spacing:-.075em;text-transform:none;font-weight:900;margin:0 0 8px;color:var(--ink);}
+.brand.brand-lockup-peg p{font-size:10px;line-height:1.5;color:var(--muted);margin:0;max-width:190px;}
+#nav a{overflow:hidden;min-width:0;}
+#nav a span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.side-card{overflow:hidden;}
+.hero-panel h3{font-size:22px;line-height:1.08;}
+.hero-panel p{font-size:11px;line-height:1.72;}
+.footer{line-height:1.6;}
+.card h3,.s-head h2,.hero h1{word-break:normal;overflow-wrap:normal;}
+@media(max-width:1100px){.layout{display:block;padding:0}.sidebar{height:auto;border-radius:0}.brand.brand-lockup-peg p{max-width:none}}
+
+</style>
+
+<style id="peg-v13-structure-preserve">
+/* Final structure: visual continuity, naming polish, typography and overflow cleanup. */
+:root{--font:'Montserrat',sans-serif;--mono:'JetBrains Mono',monospace;}
+body,.card,.hero,.sidebar,#nav a,.brand p,.hero p,.hero-panel p,td,th{font-family:var(--font)!important;}
+.layout{grid-template-columns:310px minmax(0,1fr)!important;max-width:1720px!important;margin:0 auto!important;padding:18px!important;gap:0!important;}
+.sidebar{width:auto!important;max-width:310px!important;overflow-y:auto!important;overflow-x:hidden!important;}
+#nav a{grid-template-columns:31px minmax(0,1fr)!important;overflow:hidden!important;}
+#nav a span:last-child{white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.25!important;}
+.brand h1{font-family:var(--font)!important;}
+.hero h1,.s-head h2,.card h3{font-family:var(--font)!important;}
+.hero-panel h3{font-size:26.35px!important;line-height:1.08!important;letter-spacing:-.055em!important;max-width:none!important;}
+.hero-panel{min-height:410px!important;}
+.hp-metric b{font-family:var(--font)!important;}
+@media(max-width:1100px){.layout{display:block!important;padding:0!important}.sidebar{max-width:none!important;width:auto!important;height:auto!important}.hero-grid{grid-template-columns:1fr!important}}
+</style>
+
+<!-- Final typography adjustment: explicit font sizes reduced for denser reading. -->
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand brand-lockup-peg">
+      <svg class="peg-logo" viewBox="0 0 120 120" aria-label="PEG MediaOS logo">
+        <path d="M60 8 L108 34 L108 86 L60 112 L12 86 L12 34 Z" fill="#FF5300"/>
+        <path d="M60 23 L94 41 L76 51 L60 43 L44 51 L26 41 Z" fill="#fff"/>
+        <path d="M26 79 L44 69 L60 77 L76 69 L94 79 L60 98 Z" fill="#fff"/>
+        <path d="M21 48 L45 60 L21 72 Z" fill="#fff"/>
+        <path d="M99 48 L75 60 L99 72 Z" fill="#fff"/>
+        <circle cx="60" cy="60" r="18" fill="#FF5300"/>
+      </svg>
+      <div class="brand-copy"><div class="k">PEG MediaOS · Final</div><h1>PEG<br>MediaOS</h1><p>Superdocumentação visual e operacional do ecossistema: RSSPRIME, PEG News Machine, Portal Engine, portais, evidências e roadmap.</p></div>
+    </div>
+    <div class="nav-title">Navegação</div>
+    <nav id="nav">
+      <a href="#capa"><span>00</span><span>Capa</span></a>
+      <a href="#como-usar"><span>01</span><span>Como usar</span></a>
+      <a href="#visao"><span>02</span><span>Visão geral</span></a>
+      <a href="#existe-visao"><span>03</span><span>Existe vs visão</span></a>
+      <a href="#mapa"><span>04</span><span>Mapa do ecossistema</span></a>
+      <a href="#pipeline-animado-section"><span>05</span><span>Pipeline animado</span></a>
+      <a href="#programas"><span>06</span><span>Programas</span></a>
+      <a href="#rssprime"><span>07</span><span>RSSPRIME</span></a>
+      <a href="#mn26"><span>08</span><span>PEG News Machine</span></a>
+      <a href="#portal-engine"><span>09</span><span>Portal Engine</span></a>
+      <a href="#portais"><span>10</span><span>Portais</span></a>
+      <a href="#arquitetura"><span>11</span><span>Arquitetura</span></a>
+      <a href="#workflows"><span>12</span><span>Workflows</span></a>
+      <a href="#prompts"><span>13</span><span>Prompts</span></a>
+      <a href="#acao"><span>14</span><span>Plano de ação</span></a>
+      <a href="#confirmar"><span>15</span><span>Pontos a confirmar</span></a>
+      <a href="#roadmap"><span>16</span><span>Roadmap</span></a>
+    </nav>
+    <div class="side-card"><b>Badges epistêmicos</b><p>Todo bloco relevante deve deixar claro o grau de evidência. Essa versão reduz pitch e aumenta rastreabilidade.</p><div class="legend-mini"><span>🟢 Confirmado</span><span>🟡 Inferência</span><span>🔴 Confirmar</span></div></div>
+  </aside>
+  <main>
+    <section class="hero" id="capa">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Superdocumentação visual · documento estático</div>
+          <h1>PEG <span>MEDIAOS</span></h1>
+          <p>Mapa operacional dos sistemas de mídia programática da ThePeg: RSSPRIME como agregador e Superfeed, PEG News Machine como esteira editorial automatizada, PEG Portal Engine como camada de preparação de portais WordPress, e os portais como ativos de distribuição e monetização.</p>
+          <div class="note">Os números da capa são dados documentais extraídos dos arquivos enviados. Produção ativa, volume de posts, URLs finais e monetização real precisam ser validados por portal.</div>
+        </div>
+        <div class="hero-panel">
+          <div><div class="hp-label">Natureza do arquivo</div><h3>Mapa executivo dos sistemas, portais e fluxos operacionais.</h3></div>
+          <div class="hp-row">
+            <div class="hp-metric"><b>3</b><span>programas centrais</span></div>
+            <div class="hp-metric"><b>90±</b><span>fontes documentadas*</span></div>
+            <div class="hp-metric"><b>28</b><span>tópicos documentados*</span></div>
+            <div class="hp-metric"><b>Final</b><span>documentação consolidada</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="como-usar">
+      <div class="s-head"><div><div class="eyebrow">Leitura orientada</div><h2>Como usar esta documentação</h2><p>Este documento não tenta substituir os READMEs nem o código. Ele organiza o ecossistema em uma narrativa operacional única para decisão, auditoria e priorização.</p></div><div class="section-num">01</div></div>
+      <div class="grid-3">
+        <div class="card"><div class="badge-row"><span class="badge ok">🟢 Confirmado</span></div><h3>Existe em código ou documento técnico</h3><p>Use para estruturas já descritas com arquivo, módulo, rota, fluxo ou comportamento rastreável nos documentos enviados.</p></div>
+        <div class="card"><div class="badge-row"><span class="badge inf">🟡 Inferência</span></div><h3>Deduzido, mas não testado ao vivo</h3><p>Use quando a documentação aponta uma relação provável, mas falta validação de produção, URL, deploy ativo ou execução recente.</p></div>
+        <div class="card"><div class="badge-row"><span class="badge bad">🔴 Ponto a confirmar</span></div><h3>Mencionado sem evidência suficiente</h3><p>Use para status de portal, monetização, volume de posts, pipeline em domínio específico, credenciais, produção ativa e métricas reais.</p></div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Perfil</th><th>Leia primeiro</th><th>Objetivo</th></tr></thead><tbody><tr><td>CTO</td><td>Existe vs visão → Programas → Arquitetura → Plano de ação</td><td>Entender maturidade, gargalos técnicos e próximos patches.</td></tr><tr><td>Operador</td><td>Portais → Workflows → Checklist → Pontos a confirmar</td><td>Saber o que validar antes de escalar publicações.</td></tr><tr><td>Investidor</td><td>Visão geral → Existe vs visão → Portais → Riscos com ação</td><td>Distinguir ativo real, tese de expansão e riscos executáveis.</td></tr><tr><td>IA / Codex / Claude</td><td>Programas → Prompts → Plano de ação</td><td>Gerar tasks, patches, auditorias e versões futuras da documentação.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="section" id="visao">
+      <div class="s-head"><div><div class="eyebrow">Resumo executivo</div><h2>O que o ecossistema faz hoje</h2><p>O PEG MediaOS conecta três camadas: coleta e organização de fontes, produção editorial automatizada e preparação padronizada de portais WordPress.</p></div><div class="section-num">02</div></div>
+      <div class="grid-2">
+        <div class="card dark"><div class="label">Tese operacional</div><h3>Da fonte externa ao portal publicável</h3><p>RSSPRIME organiza entradas editoriais. PEG News Machine transforma entradas em posts publicados. PEG Portal Engine prepara novos WordPress para receber conteúdo com padrão mínimo de SEO, páginas, categorias e plugins.</p></div>
+        <div class="card"><div class="label">O que ainda não está comprovado</div><h3>Produção ativa por portal e monetização</h3><p>Os documentos explicam bem os sistemas, mas ainda não consolidam uma visão objetiva por portal: URL final, WordPress instalado, pipeline ativo, conteúdo publicado, tráfego, receita e RPM.</p></div>
+      </div>
+      <div class="grid-4" style="margin-top:16px">
+        <div class="card"><span class="badge ok">🟢 Código/doc</span><h3>RSSPRIME</h3><p>Agregação multi-fonte, tópicos, Superfeed e rotas RSS/Atom documentadas.</p></div>
+        <div class="card"><span class="badge ok">🟢 Código/doc</span><h3>PEG News Machine</h3><p>Esteira editorial com fila, extração, IA, WordPress e indexação descrita em engenharia reversa.</p></div>
+        <div class="card"><span class="badge ok">🟢 Código/doc</span><h3>Portal Engine</h3><p>Sistema local para configurar WordPress já instalado no CloudPanel via SSH, WP-CLI e REST.</p></div>
+        <div class="card"><span class="badge bad">🔴 Confirmar</span><h3>Portais</h3><p>Status operacional real por domínio ainda precisa ser fechado em tabela de ativos.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="existe-visao">
+      <div class="s-head"><div><div class="eyebrow">Separação crítica</div><h2>O que já existe vs o que ainda é visão</h2><p>Esta tabela reduz ambiguidade. Ela deve ser atualizada sempre que um portal entrar em produção, um pipeline for conectado ou uma monetização for comprovada.</p></div><div class="section-num">03</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Item</th><th>Existe em código/documento</th><th>Em produção ativa</th><th>Só estratégia / visão</th><th>Observação</th></tr></thead><tbody>
+        <tr><td>RSSPRIME</td><td><span class="badge ok">🟢 Sim</span></td><td><span class="badge inf">🟡 A confirmar</span></td><td>—</td><td>Documentado como agregador com ~90 fontes, 28 tópicos e Superfeed.</td></tr>
+        <tr><td>PEG News Machine</td><td><span class="badge ok">🟢 Sim</span></td><td><span class="badge inf">🟡 TheNerd provável</span></td><td>—</td><td>Fluxo técnico confirmado nos documentos; produção por portal precisa de evidência externa.</td></tr>
+        <tr><td>PEG Portal Engine</td><td><span class="badge ok">🟢 Sim</span></td><td><span class="badge inf">🟡 Uso local a confirmar</span></td><td>—</td><td>README descreve uso local, validações e profiles JSON.</td></tr>
+        <tr><td>TheNerd</td><td><span class="badge inf">🟡 Config/documento</span></td><td><span class="badge bad">🔴 Confirmar posts</span></td><td>—</td><td>Projeto ativo do PEG News Machine aparece nos documentos, mas faltam URL, volume e status editorial atual no HTML.</td></tr>
+        <tr><td>AEconomia</td><td><span class="badge inf">🟡 Referenciado</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge inf">🟡 Expansão</span></td><td>Referenciado em testes/configurações; faltam evidências de config completa e produção.</td></tr>
+        <tr><td>AchouImovel</td><td><span class="badge inf">🟡 Planejado/documentado</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge inf">🟡 Estratégico</span></td><td>Portal imobiliário aparece como tese importante; pipeline editorial e produção precisam ser comprovados.</td></tr>
+        <tr><td>Monetização AdSense</td><td><span class="badge bad">🔴 Não consolidado</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge inf">🟡 Modelo</span></td><td>Sem RPM, receita, tráfego ou blocos de anúncio validados neste pacote.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="section" id="mapa">
+      <div class="s-head"><div><div class="eyebrow">Mapa macro</div><h2>Como as peças se conectam</h2><p>O mapa abaixo substitui fluxos repetidos. Ele mostra a função única de cada camada sem duplicar o workflow editorial em várias seções.</p></div><div class="section-num">04</div></div>
+      <div class="map"><div class="arrow-title">Arquitetura conceitual única</div><div class="map-grid"><div class="map-box"><b>Fontes externas</b><p>RSS, Atom, scraping e fontes por nicho alimentam a base editorial.</p></div><div class="map-box"><b>RSSPRIME</b><p>Coleta, deduplica, ranqueia por tópico, gera feeds e Superfeed.</p></div><div class="map-box"><b>PEG News Machine</b><p>Consome Superfeed/fallbacks, extrai conteúdo, reescreve com IA e publica.</p></div><div class="map-box"><b>WordPress</b><p>Recebe posts, categorias, mídia, metadados SEO e estrutura indexável.</p></div><div class="map-box"><b>Indexação</b><p>IndexNow, Google Indexing/API, sitemaps e mecanismos de descoberta.</p></div><div class="map-box"><b>Monetização</b><p>AdSense, afiliados, leads, SaaS ou produtos próprios — a comprovar por portal.</p></div></div></div>
+    </section>
+
+    <section class="section" id="pipeline-animado-section">
+      <div class="s-head"><div><div class="eyebrow">Pipeline Editorial</div><h2>Fluxo animado multiportal</h2><p>Este componente substitui o fluxo editorial estático. Ele mostra o caminho de fontes, RSSPRIME, Superfeed, PEG News Machine e distribuição para múltiplos portais, com painel clicável de evidência por estágio.</p></div><div class="section-num">05</div></div>
+      <div id="pipeline-animado">
+        <style>
+
+#pipeline-animado, #pipeline-animado * { box-sizing: border-box; margin: 0; padding: 0; }
+#pipeline-animado {
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  padding: 0;
+}
+#pipeline-animado .wrap { width: 100%; max-width: 900px; }
+
+#pipeline-animado .header { margin-bottom: 36px; }
+#pipeline-animado .eyebrow {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+#pipeline-animado h1 {
+  font-size: 25.5px;
+  font-weight: 900;
+  letter-spacing: -.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+#pipeline-animado h1 span { color: var(--red); }
+#pipeline-animado .sub { font-size: 11.05px; color: var(--muted); line-height: 1.65; max-width: 560px; }
+
+/* SVG node colors */
+#pipeline-animado .coral rect { fill: #FAECE7; stroke: #D85A30; }
+#pipeline-animado .coral text { fill: #712B13; }
+#pipeline-animado .purple rect { fill: #EEEDFE; stroke: #7F77DD; }
+#pipeline-animado .purple text { fill: #3C3489; }
+#pipeline-animado .amber rect { fill: #FAEEDA; stroke: #BA7517; }
+#pipeline-animado .amber text { fill: #633806; }
+#pipeline-animado .teal rect { fill: #E1F5EE; stroke: #1D9E75; }
+#pipeline-animado .teal text { fill: #085041; }
+#pipeline-animado .amber-lt rect { fill: #FEF6E8; stroke: #EF9F27; }
+#pipeline-animado .amber-lt text { fill: #854F0B; }
+#pipeline-animado .blue rect { fill: #E6F1FB; stroke: #378ADD; }
+#pipeline-animado .blue text { fill: #0C447C; }
+#pipeline-animado .gray rect { fill: #F1EFE8; stroke: #B4B2A9; }
+#pipeline-animado .gray text { fill: #444441; }
+
+#pipeline-animado .node-box { cursor: pointer; transition: opacity .15s; }
+#pipeline-animado .node-box:hover { opacity: .82; }
+
+/* Detail panel */
+#pipeline-animado .detail-panel {
+  margin-top: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px 26px;
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  transition: opacity .15s;
+}
+#pipeline-animado .dp-placeholder {
+  font-size: 11.05px;
+  color: var(--muted2);
+  text-align: center;
+  width: 100%;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+#pipeline-animado .dp-name {
+  font-size: 16.15px;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+#pipeline-animado .dp-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+#pipeline-animado .badge {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+#pipeline-animado .b-ok { background: rgba(60,107,74,.12);   color: #2c5237; border: 1px solid rgba(60,107,74,.2); }
+#pipeline-animado .b-warn { background: rgba(180,138,59,.15);  color: #7a5c1e; border: 1px solid rgba(180,138,59,.2); }
+#pipeline-animado .b-ask { background: rgba(141,27,27,.08);   color: var(--red); border: 1px solid rgba(141,27,27,.15); }
+#pipeline-animado .b-tag { background: rgba(17,17,17,.05);    color: var(--muted); border: 1px solid var(--line); }
+#pipeline-animado .dp-desc {
+  font-size: 11.47px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+#pipeline-animado .dp-note {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(180,138,59,.1);
+  border-radius: 12px;
+  border: 1px solid rgba(180,138,59,.2);
+  font-size: 10.2px;
+  color: #7a5c1e;
+  line-height: 1.55;
+}
+
+/* Legend */
+#pipeline-animado .legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#pipeline-animado .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted2);
+}
+#pipeline-animado .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+#pipeline-animado .legend-dash {
+  width: 20px;
+  height: 1px;
+  border-top: 2px dashed var(--muted2);
+}
+#pipeline-animado .footer-note {
+  margin-top: 28px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted2);
+  text-align: right;
+}
+
+        </style>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">PEG MediaOS · Pipeline Multiportal</div>
+    <h1>Um pipeline, <span>vários portais</span></h1>
+    <p class="sub">O PEG News Machine distribui artigos para múltiplos portais simultaneamente. Cada partícula animada representa um artigo seguindo seu próprio caminho de destino. Clique em qualquer nó para detalhes.</p>
+  </div>
+
+  <svg width="100%" viewBox="0 0 900 310" style="display:block">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="var(--muted2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <path id="fp1" d="M 150,52 L 698,52 L 698,110 L 121,110 L 121,285" fill="none" stroke="none"/>
+      <path id="fp2" d="M 150,52 L 698,52 L 698,110 L 321,110 L 321,285" fill="none" stroke="none"/>
+      <path id="fp3" d="M 150,52 L 698,52 L 698,110 L 521,110 L 521,285" fill="none" stroke="none"/>
+      <path id="fp4" d="M 150,52 L 698,52 L 698,110 L 721,110 L 721,285" fill="none" stroke="none"/>
+    </defs>
+
+    <!-- ===== ROW 1: PIPELINE ===== -->
+
+    <!-- Fontes -->
+    <g class="node-box coral" onclick="showDetail('fontes')">
+      <rect x="20" y="22" width="140" height="62" rx="10" stroke-width="1"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="11.05" x="90" y="47" text-anchor="middle" dominant-baseline="central">Fontes</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="9.35" x="90" y="66" text-anchor="middle" dominant-baseline="central">90± portais</text>
+    </g>
+
+    <line x1="162" y1="53" x2="181" y2="53" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+
+    <!-- RSSPRIME -->
+    <g class="node-box purple" onclick="showDetail('rssprime')">
+      <rect x="183" y="22" width="140" height="62" rx="10" stroke-width="1"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="11.05" x="253" y="47" text-anchor="middle" dominant-baseline="central">RSSPRIME</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="9.35" x="253" y="66" text-anchor="middle" dominant-baseline="central">Agrega · 30min</text>
+    </g>
+
+    <line x1="325" y1="53" x2="344" y2="53" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+
+    <!-- Superfeed -->
+    <g class="node-box purple" onclick="showDetail('superfeed')">
+      <rect x="346" y="22" width="140" height="62" rx="10" stroke-width="1"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="11.05" x="416" y="47" text-anchor="middle" dominant-baseline="central">Superfeed</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="9.35" x="416" y="66" text-anchor="middle" dominant-baseline="central">Clusters · 28 tópicos</text>
+    </g>
+
+    <line x1="488" y1="53" x2="507" y2="53" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+
+    <!-- PEG News Machine -->
+    <g class="node-box amber" onclick="showDetail('mn26')">
+      <rect x="509" y="22" width="170" height="62" rx="10" stroke-width="1.5"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="900" font-size="11.9" x="594" y="47" text-anchor="middle" dominant-baseline="central">PEG News Machine</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="9.35" x="594" y="66" text-anchor="middle" dominant-baseline="central">IA · distribuidor central</text>
+    </g>
+
+    <!-- ===== DISTRIBUTION BUS ===== -->
+    <line x1="594" y1="86" x2="594" y2="108" stroke="var(--muted2)" stroke-width="1"/>
+    <line x1="121" y1="110" x2="721" y2="110" stroke="var(--muted2)" stroke-width="0.5" stroke-dasharray="5 4"/>
+    <line x1="121" y1="110" x2="121" y2="126" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="321" y1="110" x2="321" y2="126" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="521" y1="110" x2="521" y2="126" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="721" y1="110" x2="721" y2="126" stroke="var(--muted2)" stroke-width="1" marker-end="url(#ah)"/>
+
+    <!-- ===== ROW 2: PORTALS ===== -->
+
+    <!-- TheNerd -->
+    <g class="node-box teal" onclick="showDetail('thenerd')">
+      <rect x="21" y="128" width="200" height="140" rx="12" stroke-width="1.5"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="121" y="152" text-anchor="middle" dominant-baseline="central" fill="#085041" letter-spacing="0.08em">ENTERTAINMENT</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="900" font-size="15.3" x="121" y="178" text-anchor="middle" dominant-baseline="central" fill="#085041">TheNerd</text>
+      <rect x="56" y="193" width="130" height="20" rx="10" fill="#1D9E75" opacity="0.22"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="8.92" x="121" y="203" text-anchor="middle" dominant-baseline="central" fill="#085041">Ativo · Pipeline rodando</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="121" y="228" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">PEG News Machine · RSSPRIME · WP</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="121" y="248" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">Indexação · AdSense</text>
+    </g>
+
+    <!-- AEconomia -->
+    <g class="node-box amber-lt" onclick="showDetail('aeconomia')">
+      <rect x="221" y="128" width="200" height="140" rx="12" stroke-width="1"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="321" y="152" text-anchor="middle" dominant-baseline="central" fill="#854F0B" letter-spacing="0.08em">FINANÇAS</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="900" font-size="15.3" x="321" y="178" text-anchor="middle" dominant-baseline="central" fill="#633806">AEconomia</text>
+      <rect x="256" y="193" width="130" height="20" rx="10" fill="#BA7517" opacity="0.18"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="8.92" x="321" y="203" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Em estruturação</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="321" y="228" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Portal Engine · setup WP</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="321" y="248" text-anchor="middle" dominant-baseline="central" fill="#854F0B">Pipeline a confirmar</text>
+    </g>
+
+    <!-- AchouImovel -->
+    <g class="node-box blue" onclick="showDetail('achouimovel')">
+      <rect x="421" y="128" width="200" height="140" rx="12" stroke-width="1"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="521" y="152" text-anchor="middle" dominant-baseline="central" fill="#0C447C" letter-spacing="0.08em">IMÓVEIS · SAAS</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="900" font-size="13.6" x="521" y="178" text-anchor="middle" dominant-baseline="central" fill="#042C53">AchouImovel</text>
+      <rect x="456" y="193" width="130" height="20" rx="10" fill="#378ADD" opacity="0.15"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="8.92" x="521" y="203" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Estratégico</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="521" y="228" text-anchor="middle" dominant-baseline="central" fill="#185FA5">SEO programático · leads</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="521" y="248" text-anchor="middle" dominant-baseline="central" fill="#185FA5">CRM · operação a definir</text>
+    </g>
+
+    <!-- +Futuros -->
+    <g class="node-box gray" onclick="showDetail('futuros')">
+      <rect x="621" y="128" width="200" height="140" rx="12" stroke-width="0.5" stroke-dasharray="6 4"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="721" y="152" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A" letter-spacing="0.08em">MULTI-NICHO</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="900" font-size="15.3" x="721" y="178" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">+N portais</text>
+      <rect x="656" y="193" width="130" height="20" rx="10" fill="#888780" opacity="0.15"/>
+      <text font-family="'Montserrat',sans-serif" font-weight="700" font-size="8.92" x="721" y="203" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">Pipeline de expansão</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="721" y="228" text-anchor="middle" dominant-baseline="central" fill="#888780">Saúde · Jurídico · Tech</text>
+      <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="8.92" x="721" y="248" text-anchor="middle" dominant-baseline="central" fill="#888780">Seguros · Educação · Auto</text>
+    </g>
+
+    <!-- Shared output -->
+    <text font-family="'Montserrat',sans-serif" font-weight="400" font-size="9.35" x="450" y="296" text-anchor="middle" dominant-baseline="central" fill="var(--muted2)">Todos convergem para → Indexação · Tráfego orgânico · Receita</text>
+
+    <!-- ===== PARTICLES ===== -->
+    <circle r="6" fill="var(--gold)" opacity="0.92">
+      <animateMotion dur="5.5s" repeatCount="indefinite"><mpath href="#fp1"/></animateMotion>
+    </circle>
+    <circle r="6" fill="var(--gold)" opacity="0.85">
+      <animateMotion dur="5.5s" begin="-1.4s" repeatCount="indefinite"><mpath href="#fp2"/></animateMotion>
+    </circle>
+    <circle r="6" fill="var(--gold)" opacity="0.78">
+      <animateMotion dur="5.5s" begin="-2.8s" repeatCount="indefinite"><mpath href="#fp3"/></animateMotion>
+    </circle>
+    <circle r="6" fill="var(--gold)" opacity="0.70">
+      <animateMotion dur="5.5s" begin="-4.1s" repeatCount="indefinite"><mpath href="#fp4"/></animateMotion>
+    </circle>
+  </svg>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" id="dp">
+    <p class="dp-placeholder">← Clique em qualquer nó para ver detalhes</p>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Confirmado</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Inferência</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Ponto a confirmar</div>
+    <div class="legend-item"><div class="legend-dash"></div>Bus de distribuição</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gold);border-radius:0;width:12px;height:6px;border-radius:3px"></div>Artigo em trânsito</div>
+  </div>
+
+  <div class="footer-note">PEG MediaOS · Superdocumentação Visual Final · PEG MediaOS</div>
+
+</div>
+        <script>
+const data = {
+  fontes: {
+    name: 'Fontes',
+    tag: 'Entrada',
+    status: 'Confirmado',
+    desc: '~90 portais em PT-BR, EN, ES, FR e DE — via RSS oficial ou scraping HTML. Cada fonte tem slug, seção e tópico associado. É a camada mais frágil: fontes podem bloquear acesso, mudar estrutura HTML ou gerar conteúdo duplicado.',
+    note: 'Lista exata de fontes ativas em produção ainda a confirmar. Quais estão bloqueadas, substituídas ou degradadas?'
+  },
+  rssprime: {
+    name: 'RSSPRIME',
+    tag: 'Agregação · 30min',
+    status: 'Confirmado',
+    desc: 'Scheduler de 30 minutos. Coleta, deduplica por URL e similaridade de título, organiza em 28 tópicos e gera feeds RSS/Atom e Superfeeds com namespace sf: enriquecido.',
+    note: 'Critério exato do cluster READY e domínio público ainda a validar.'
+  },
+  superfeed: {
+    name: 'Superfeed',
+    tag: 'Feed enriquecido',
+    status: 'Confirmado',
+    desc: 'RSS com metadados: event_key, multi_source, source_count, urls, topic, primary_source, first_seen e last_seen. Clusters READY entram na fila do PEG News Machine com prioridade sobre fallbacks.',
+    note: null
+  },
+  mn26: {
+    name: 'PEG News Machine',
+    tag: 'Distribuidor IA',
+    status: 'Confirmado',
+    desc: 'O nó central de distribuição do ecossistema. Cada portal é um projeto separado com seu próprio config.yaml, categorias e fontes. O PEG News Machine instancia um projeto por portal e publica de forma independente em cada WordPress via REST API.',
+    note: 'Bug QUEUED pode gerar backlog silencioso. Dashboard parcial — validar operação real de cada projeto.'
+  },
+  thenerd: {
+    name: 'TheNerd',
+    tag: 'Entertainment · Ativo',
+    status: 'Confirmado',
+    desc: 'Portal mais maduro do ecossistema. Pipeline editorial automatizado em produção: RSSPRIME alimenta o Superfeed, PEG News Machine reescreve com Gemini e publica no WordPress via REST API. Nichos: filmes, séries, games e cultura pop.',
+    note: 'Confirmar domínio atual, categorias finais, volume de posts publicados e RPM real.'
+  },
+  aeconomia: {
+    name: 'AEconomia',
+    tag: 'Finanças · Em estruturação',
+    status: 'Ponto a confirmar',
+    desc: 'Referenciado como destino de expansão. Conteúdo: economia, finanças, dinheiro e negócios. Portal Engine é o caminho para setup inicial do WordPress no CloudPanel.',
+    note: 'Confirmar se há config.yaml real, pipeline PEG News Machine próprio, WordPress instalado e domínio apontado.'
+  },
+  achouimovel: {
+    name: 'AchouImovel',
+    tag: 'Imóveis · Estratégico',
+    status: 'Ponto a confirmar',
+    desc: 'Projeto híbrido com estratégia forte: portal de conteúdo editorial, SEO programático por cidade/bairro, geração de leads qualificados para corretores e potencial SaaS/CRM. A tese é clara — a operação ainda precisa ser confirmada.',
+    note: 'Mapear o que existe hoje: portal WP instalado? Conteúdo publicado? Pipeline ativo? CRM prototipado?'
+  },
+  futuros: {
+    name: '+N portais',
+    tag: 'Pipeline de expansão',
+    status: 'Inferência',
+    desc: 'Saúde, jurídico, seguros, educação, tecnologia, automóveis e outros nichos avaliados por RPM e capacidade de abastecimento. A base técnica (RSSPRIME + PEG News Machine + Portal Engine) está projetada para suportar dezenas de portais com o mesmo stack.',
+    note: 'Definir prioridade por RPM estimado, risco editorial, disponibilidade de fontes e capacidade de setup.'
+  }
+};
+
+const statusClass = {
+  'Confirmado': 'b-ok',
+  'Inferência': 'b-warn',
+  'Ponto a confirmar': 'b-ask'
+};
+
+function showDetail(key) {
+  const s = data[key];
+  const p = document.getElementById('dp');
+  p.style.opacity = '0';
+  setTimeout(() => {
+    p.innerHTML = `
+      <div style="width:100%">
+        <div class="dp-name">${s.name}</div>
+        <div class="dp-meta">
+          <span class="badge ${statusClass[s.status]}">${s.status}</span>
+          <span class="badge b-tag">${s.tag}</span>
+        </div>
+        <p class="dp-desc">${s.desc}</p>
+        ${s.note ? `<div class="dp-note"><strong>Ponto a confirmar:</strong> ${s.note}</div>` : ''}
+      </div>
+    `;
+    p.style.opacity = '1';
+  }, 150);
+}
+        </script>
+      </div>
+    </section>
+
+    <section class="section" id="programas">
+      <div class="s-head"><div><div class="eyebrow">Três sistemas centrais</div><h2>Programas do ecossistema</h2><p>Esta seção mantém apenas a visão comparativa de função. Fragilidades específicas foram movidas para as seções individuais para evitar repetição.</p></div><div class="section-num">06</div></div>
+      <div class="grid-3">
+        <div class="card"><span class="badge ok">🟢 Confirmado</span><h3>RSSPRIME</h3><p><strong>Função:</strong> agregador e organizador editorial. Transforma múltiplas fontes em feeds por tópico e Superfeed.</p><ul class="list"><li>Entrada: fontes RSS/HTML.</li><li>Saída: RSS/Atom e Superfeed.</li><li>Consumidor: PEG News Machine ou qualquer CMS/leitor.</li></ul></div>
+        <div class="card"><span class="badge ok">🟢 Confirmado</span><h3>PEG News Machine</h3><p><strong>Função:</strong> esteira editorial. Transforma itens de feed em posts WordPress com IA, SEO e indexação.</p><ul class="list"><li>Entrada: RSSPRIME Superfeed e fallbacks.</li><li>Saída: posts publicados.</li><li>Projeto ativo documentado: TheNerd.</li></ul></div>
+        <div class="card"><span class="badge ok">🟢 Confirmado</span><h3>PEG Portal Engine</h3><p><strong>Função:</strong> preparação de portais. Configura WordPress recém-instalado no CloudPanel.</p><ul class="list"><li>Entrada: domínio, SSH, REST, profile JSON.</li><li>Saída: portal editorial preparado.</li><li>Não instala WordPress.</li></ul></div>
+      </div>
+    </section>
+
+    <section class="section" id="rssprime">
+      <div class="s-head"><div><div class="eyebrow">Programa 01</div><h2>RSSPRIME — camada de fontes, tópicos e Superfeed</h2><p>É a camada de entrada do ecossistema. A documentação descreve RSSPRIME como agregador multi-fonte, multi-idioma, com deduplicação e feeds por tópico.</p></div><div class="section-num">07</div></div>
+      <div class="grid-2"><div class="card"><div class="badge-row"><span class="badge ok">🟢 Confirmado</span></div><h3>Funções documentadas</h3><ul class="list"><li>Coleta multi-fonte em PT-BR, EN, ES, FR, DE e IT.</li><li>Deduplicação por URL, canônica e similaridade de título.</li><li>Feeds por tópico em RSS/Atom.</li><li>Superfeed com clusters multi-fonte e singletons.</li><li>Validação por IA em clusters borderline como recurso opt-in.</li><li>Dashboard com KPIs, status de fontes e pesos editoriais.</li></ul></div><div class="card"><div class="badge-row"><span class="badge inf">🟡 Produção a confirmar</span></div><h3>Fragilidades / validações</h3><ul class="list"><li>Confirmar quais tópicos estão ativos no servidor atual.</li><li>Confirmar se todos os ~90 portais continuam coletando com sucesso.</li><li>Medir taxa de clusters READY realmente consumidos pelo PEG News Machine.</li><li>Separar fontes com scraping frágil de fontes com RSS oficial.</li></ul></div></div>
+      <div class="table-wrap" style="margin-top:16px"><table><thead><tr><th>Família de feed</th><th>Padrão</th><th>Origem</th><th>Uso</th><th>Evidência</th></tr></thead><tbody><tr><td>Fonte / seção</td><td><code>/feeds/&lt;source&gt;/&lt;section&gt;/rss</code></td><td>Tabela de artigos coletados</td><td>Auditoria granular de uma fonte específica.</td><td><span class="badge ok">🟢</span></td></tr><tr><td>Tópico</td><td><code>/feeds/topic/&lt;topic&gt;/rss</code></td><td><code>processed_topics</code></td><td>Agregação editorial por tema.</td><td><span class="badge ok">🟢</span></td></tr><tr><td>Superfeed</td><td><code>/feeds/superfeed/&lt;topic&gt;/rss</code></td><td><code>processed_topics</code>, <code>sf_clusters</code>, <code>sf_raw_items</code></td><td>Entrada prioritária para pipeline editorial.</td><td><span class="badge ok">🟢</span></td></tr></tbody></table></div>
+      <div class="note">O catálogo de feeds foi incorporado aqui para evitar uma seção redundante. Exemplos documentados incluem <code>noticias_brasil</code>, <code>economia_politica</code>, <code>movies</code>, <code>tv</code>, <code>ligas_eua</code> e outros tópicos.</div>
+    </section>
+
+    <section class="section" id="mn26">
+      <div class="s-head"><div><div class="eyebrow">Programa 02</div><h2>PEG News Machine — esteira editorial automatizada</h2><p>É o motor de produção. A documentação técnica descreve um fluxo com scheduler, ingestão, deduplicação, fila persistente, extração, IA, HTML, WordPress e indexação.</p></div><div class="section-num">08</div></div>
+      <div class="timeline"><div class="tl"><div class="tl-num">01</div><div class="tl-body"><b>Scheduler</b><span>APScheduler roda o ciclo principal, documentado em intervalo de 15 minutos no PEG News Machine.</span></div><div class="tl-owner">entrypoint.py</div></div><div class="tl"><div class="tl-num">02</div><div class="tl-body"><b>FeedReader</b><span>Lê RSSPRIME Superfeed e fallbacks configurados por projeto.</span></div><div class="tl-owner">feeds.py</div></div><div class="tl"><div class="tl-num">03</div><div class="tl-body"><b>Deduplicação + fila</b><span>Filtra novos artigos, persiste no SQLite e envia para fila persistente.</span></div><div class="tl-owner">store / queue</div></div><div class="tl"><div class="tl-num">04</div><div class="tl-body"><b>Extração</b><span>Obtém HTML, conteúdo completo, metadados, mídia e aplica limpadores por domínio.</span></div><div class="tl-owner">extractor.py</div></div><div class="tl"><div class="tl-num">05</div><div class="tl-body"><b>IA + SEO</b><span>Gemini reescreve, estrutura conteúdo, gera SEO pack e metadados editoriais.</span></div><div class="tl-owner">ai_*.py</div></div><div class="tl"><div class="tl-num">06</div><div class="tl-body"><b>WordPress</b><span>Cria post, envia mídia, ajusta categorias, Yoast/meta e sanitização pós-publicação.</span></div><div class="tl-owner">wordpress.py</div></div><div class="tl"><div class="tl-num">07</div><div class="tl-body"><b>Indexação</b><span>Aciona IndexNow, Google Indexing, sitemap e mecanismos auxiliares de descoberta.</span></div><div class="tl-owner">indexing_service</div></div></div>
+      <div class="grid-2" style="margin-top:16px"><div class="card"><span class="badge ok">🟢 Confirmado</span><h3>Pontos fortes</h3><ul class="list"><li>Superfeed priorizado sobre fallbacks.</li><li>Deduplicação por event_key, URL canônica, título normalizado e similaridade.</li><li>Sanitização HTML agressiva contra CTA e markup inválido.</li><li>Publicação WordPress relativamente robusta.</li></ul></div><div class="card"><span class="badge bad">🔴 Ação necessária</span><h3>Fragilidades críticas</h3><ul class="list"><li>Bug documentado: status QUEUED pode não ser consumido pelo buscador de trabalhos futuros.</li><li>Arquivos monolíticos elevam risco de regressão.</li><li>Dashboard aparece como parcial, com telas e controles não totalmente implementados.</li><li>Indexação convive com integrações desatualizadas ou mal configuradas.</li></ul></div></div>
+    </section>
+
+    <section class="section" id="portal-engine">
+      <div class="s-head"><div><div class="eyebrow">Programa 03</div><h2>PEG Portal Engine — preparação operacional de WordPress</h2><p>O Portal Engine reduz repetição no lançamento de novos portais. Ele não cria o WordPress; entra depois da instalação manual no CloudPanel.</p></div><div class="section-num">09</div></div>
+      <div class="grid-3"><div class="card"><span class="badge ok">🟢 Confirmado</span><h3>Canais de comunicação</h3><ul class="list"><li>SSH via Paramiko.</li><li>WP-CLI executado no VPS.</li><li>WordPress REST API com Application Password.</li><li>Painel local Flask + Bootstrap em <code>127.0.0.1:5000</code>.</li></ul></div><div class="card"><span class="badge ok">🟢 Confirmado</span><h3>O que ele automatiza</h3><ul class="list"><li>Plugins essenciais.</li><li>Configurações base do WordPress.</li><li>SEO técnico inicial.</li><li>Páginas institucionais.</li><li>Categorias por nicho.</li><li>Post de teste e relatório Markdown.</li></ul></div><div class="card"><span class="badge inf">🟡 Operação a confirmar</span><h3>Profiles JSON</h3><ul class="list"><li>Estrutura esperada: <code>config/sites/</code>.</li><li>Exemplos citados: <code>aeconomia.json</code>, <code>thenerd.json</code>, <code>achouimovel.json</code>.</li><li>Confirmar quais profiles existem e quais já foram usados.</li></ul></div></div>
+    </section>
+
+    <section class="section" id="portais">
+      <div class="s-head"><div><div class="eyebrow">Ativos digitais</div><h2>Mapa real dos portais</h2><p>Esta é a seção que mais precisa de atualização manual. Sem URL, WordPress, pipeline, volume de conteúdo e monetização, o ativo fica descrito como tese, não como operação.</p></div><div class="section-num">10</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Portal</th><th>Nicho</th><th>URL real</th><th>WP instalado?</th><th>Recebe pipeline?</th><th>Conteúdo publicado?</th><th>Status honesto</th></tr></thead><tbody><tr><td>TheNerd</td><td>Entretenimento, filmes, séries, games</td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge inf">🟡 Provável PEG News Machine</span></td><td><span class="badge bad">🔴 Confirmar volume</span></td><td>Projeto mais conectado ao PEG News Machine; falta consolidar evidência operacional.</td></tr><tr><td>AEconomia</td><td>Finanças, economia, dinheiro</td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td>Referenciado como expansão; falta status técnico completo.</td></tr><tr><td>AchouImovel</td><td>Imóveis, guias locais, SEO programático</td><td><span class="badge inf">🟡 Conversacional</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td><span class="badge bad">🔴 Confirmar</span></td><td>Tese estratégica forte; precisa separar portal, SaaS e conteúdo editorial.</td></tr><tr><td>Futuros portais</td><td>Saúde, jurídico, seguros, tecnologia, educação, negócios, automóveis</td><td>—</td><td>—</td><td>—</td><td>—</td><td>Pipeline de expansão; depende de Portal Engine + fontes + templates.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="section" id="arquitetura"><div class="s-head"><div><div class="eyebrow">Antes dos workflows</div><h2>Arquitetura em camadas</h2><p>A arquitetura vem antes dos fluxos para deixar claro quais componentes existem e em qual camada cada um opera.</p></div><div class="section-num">11</div></div><div class="layers"><div class="layer"><b>Input Layer</b><div><span class="pill">RSS</span><span class="pill">Atom</span><span class="pill">Superfeed</span><span class="pill">Sitemaps</span><span class="pill">Config YAML</span><span class="pill">Profiles JSON</span><span class="pill">Prompts</span></div></div><div class="layer"><b>Process Layer</b><div><span class="pill">RSSPRIME</span><span class="pill">Superfeed clustering</span><span class="pill">PEG News Machine</span><span class="pill">Gemini</span><span class="pill">Extractors</span><span class="pill">WP-CLI</span><span class="pill">REST API</span></div></div><div class="layer"><b>Output Layer</b><div><span class="pill">Feeds publicados</span><span class="pill">Posts WordPress</span><span class="pill">Categorias</span><span class="pill">Páginas institucionais</span><span class="pill">Sitemaps</span><span class="pill">Relatórios Markdown</span></div></div><div class="layer"><b>Monetization Layer</b><div><span class="pill">AdSense a confirmar</span><span class="pill">Afiliados a confirmar</span><span class="pill">Leads</span><span class="pill">SaaS</span><span class="pill">Produtos próprios</span></div></div><div class="layer"><b>Observability Layer</b><div><span class="pill">Logs</span><span class="pill">Dashboard parcial</span><span class="pill">Status de feeds</span><span class="pill">SQLite</span><span class="pill">Checklists</span><span class="pill">Auditorias</span></div></div></div></section>
+
+    <section class="section" id="workflows"><div class="s-head"><div><div class="eyebrow">Operação</div><h2>Workflows sem duplicação</h2><p>Os fluxos abaixo são operacionais e complementares. O fluxo editorial principal foi movido para a seção animada para evitar duplicação.</p></div><div class="section-num">12</div></div><div class="grid-2"><div class="card"><h3>Criação de novo portal</h3><div class="flow"><div class="step"><b>CloudPanel</b><span>WordPress manual</span></div><div class="step"><b>Profile</b><span>JSON do portal</span></div><div class="step"><b>Validação</b><span>SSH/REST/WP-CLI</span></div><div class="step"><b>Setup</b><span>Plugins, páginas, categorias</span></div><div class="step"><b>Pronto</b><span>Relatório final</span></div></div></div><div class="card"><h3>Produção editorial</h3><p>O fluxo editorial detalhado agora está concentrado na seção <a href="#pipeline-animado-section" style="color:var(--red);font-weight:900;text-decoration:none">Pipeline Editorial — Fluxo Animado</a>. Esta área mantém apenas os workflows complementares para evitar duplicação visual.</p><span class="badge ok">Ver seção 05</span></div><div class="card"><h3>SEO e indexação</h3><div class="flow"><div class="step"><b>Post</b><span>Publicado</span></div><div class="step"><b>Sitemap</b><span>News/geral</span></div><div class="step"><b>IndexNow</b><span>Ping</span></div><div class="step"><b>Google</b><span>Indexing/API</span></div><div class="step"><b>GSC</b><span>Validação</span></div></div></div><div class="card"><h3>Documentação e prompts</h3><div class="flow"><div class="step"><b>Problema</b><span>Risco/task</span></div><div class="step"><b>Prompt</b><span>Codex/Claude</span></div><div class="step"><b>Patch</b><span>HTML/MD/código</span></div><div class="step"><b>Auditoria</b><span>Fidelidade</span></div><div class="step"><b>Versão</b><span>Arquivo mestre</span></div></div></div></div></section>
+
+    <section class="section" id="prompts"><div class="s-head"><div><div class="eyebrow">Banco de prompts</div><h2>Taxonomia útil de prompts</h2><p>A documentação deve catalogar prompts por função, não apenas guardar textos longos. O objetivo é saber quando usar cada tipo e qual saída esperar.</p></div><div class="section-num">13</div></div><div class="grid-3"><div class="card"><h3>Auditoria técnica</h3><p>Usado para transformar HTML/MD/código em diagnóstico: bugs, riscos, maturidade, duplicidades e planos de correção.</p><span class="badge ok">Entrada: docs/código</span></div><div class="card"><h3>Execução por IA</h3><p>Prompts para Codex, Copilot, Gemini ou Claude aplicarem patches, gerar diffs, relatórios, checklists e HTMLs.</p><span class="badge ok">Saída: artefato</span></div><div class="card"><h3>SEO editorial</h3><p>Prompts para reescrita jornalística, metadados, headlines, estrutura Gutenberg, links internos e remoção de CTA externo.</p><span class="badge inf">Usado no PEG News Machine</span></div><div class="card"><h3>Documentação visual</h3><p>Prompts para converter inventários densos em documentos navegáveis, com badges, seções e linguagem executiva.</p><span class="badge ok">Este arquivo</span></div><div class="card"><h3>Portal Engine</h3><p>Prompts para criar tasks de validação SSH, REST, WP-CLI, profiles JSON, timeout e proteção contra sobrescrita destrutiva.</p><span class="badge inf">Operacional</span></div><div class="card"><h3>Estratégia de portfólio</h3><p>Prompts para nichos, RPM, AdSense, fontes, clusters editoriais e priorização de lançamento de portais.</p><span class="badge bad">Exige dados reais</span></div></div></section>
+
+    <section class="section" id="acao"><div class="s-head"><div><div class="eyebrow">Plano, não lista</div><h2>Riscos transformados em ação</h2><p>A Esta seção organiza riscos em linhas acionáveis, com dono sugerido, próxima ação e prazo estimado.</p></div><div class="section-num">14</div></div><div class="table-wrap"><table class="action-table"><thead><tr><th>Risco</th><th>Área</th><th>Impacto</th><th>Dono sugerido</th><th>Próximo passo concreto</th><th>Prazo</th></tr></thead><tbody><tr><td>Status QUEUED não consumido</td><td>PEG News Machine</td><td>Backlog silencioso</td><td>Engenharia</td><td>Auditar transições de status e corrigir query de trabalhos elegíveis.</td><td>24–48h</td></tr><tr><td>Portais sem status verificável</td><td>Portfólio</td><td>Ambiguidade para investidor/CTO</td><td>Founder / Operação</td><td>Criar tabela real com URL, WP, pipeline, posts, tráfego e receita.</td><td>1 dia</td></tr><tr><td>Monetização sem números</td><td>Receita</td><td>Tese sem validação financeira</td><td>Founder / Growth</td><td>Preencher RPM, pageviews, AdSense ativo e blocos por portal.</td><td>2–3 dias</td></tr><tr><td>Dashboard parcial</td><td>Observabilidade</td><td>Falsa sensação de controle</td><td>Engenharia</td><td>Marcar no dashboard o que é funcional, mockado ou pendente.</td><td>3–5 dias</td></tr><tr><td>Documentação duplicada</td><td>Governança</td><td>Confusão e baixa confiança</td><td>Documentação</td><td>Definir documento-mestre e arquivar versões redundantes.</td><td>1 dia</td></tr><tr><td>Indexação com integrações frágeis</td><td>SEO técnico</td><td>Publicação sem descoberta</td><td>SEO / Engenharia</td><td>Separar IndexNow, Google Indexing, sitemap e GSC por status real.</td><td>3–7 dias</td></tr></tbody></table></div></section>
+
+    <section class="section" id="confirmar"><div class="s-head"><div><div class="eyebrow">Pendências separadas por sistema</div><h2>Pontos a confirmar</h2><p>Esta seção existe para impedir que inferências virem afirmações. Ela deve ser fechada antes de usar o documento como material externo.</p></div><div class="section-num">15</div></div><div class="grid-3"><div class="card"><span class="badge bad">🔴 RSSPRIME</span><ul class="list"><li>Servidor atual ativo e endpoint público.</li><li>Número real de fontes funcionando hoje.</li><li>Tópicos ativos com atualização recente.</li><li>Clusters READY enviados ao PEG News Machine.</li></ul></div><div class="card"><span class="badge bad">🔴 PEG News Machine</span><ul class="list"><li>Portal atualmente conectado em produção.</li><li>Quantidade de posts publicados por dia.</li><li>Status do bug QUEUED.</li><li>Quais botões do dashboard são reais.</li></ul></div><div class="card"><span class="badge bad">🔴 Portal Engine</span><ul class="list"><li>Quais profiles JSON existem.</li><li>Quais portais já foram preparados por ele.</li><li>Proteção contra sobrescrita destrutiva.</li><li>Timeouts SSH/REST implementados.</li></ul></div><div class="card"><span class="badge bad">🔴 Portais</span><ul class="list"><li>URL real de cada ativo.</li><li>WordPress instalado: sim/não.</li><li>Pipeline conectado: sim/não.</li><li>Conteúdo publicado: sim/não e volume.</li></ul></div><div class="card"><span class="badge bad">🔴 Monetização</span><ul class="list"><li>AdSense aprovado por portal.</li><li>RPM real ou esperado por nicho.</li><li>Pageviews atuais.</li><li>Fontes de receita além de display ads.</li></ul></div><div class="card"><span class="badge bad">🔴 Documentação</span><ul class="list"><li>Documento-mestre único.</li><li>Changelog por versão.</li><li>Separação entre docs ativos, legados e experimentais.</li><li>Critério de atualização mensal.</li></ul></div></div></section>
+
+    <section class="section" id="roadmap">
+  <div class="s-head">
+    <div>
+      <div class="eyebrow">Versões e governança</div>
+      <h2>Roadmap final separado por trilhas</h2>
+      <p>Esta seção deixa claro o que pertence à evolução da documentação e o que pertence à evolução real do produto. O objetivo é evitar que melhoria visual pareça avanço operacional.</p>
+    </div>
+    <div class="section-num">16</div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="label">Trilha A · Documentação</div>
+      <h3>Próxima revisão documental</h3>
+      <ul class="list">
+        <li>Preencher URLs reais dos portais.</li>
+        <li>Registrar status de WordPress, pipeline e posts por ativo.</li>
+        <li>Consolidar métricas mínimas: posts, pageviews, receita, RPM e fonte de evidência.</li>
+        <li>Separar campo documentado, inferido e a confirmar em todas as tabelas críticas.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="label">Trilha B · Produto</div>
+      <h3>Sprint operacional</h3>
+      <ul class="list">
+        <li>Corrigir riscos P0 do PEG News Machine.</li>
+        <li>Validar RSSPRIME em produção, incluindo fontes ativas, bloqueadas e degradadas.</li>
+        <li>Rodar o Portal Engine em um novo portal piloto.</li>
+        <li>Definir padrão de monitoração por portal: GSC, GA4, AdSense, logs e status do pipeline.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="label">Trilha C · Escala</div>
+      <h3>Portfólio multiportal</h3>
+      <ul class="list">
+        <li>Templates editoriais por nicho.</li>
+        <li>Feeds e Superfeeds por vertical.</li>
+        <li>Prompts por categoria editorial, país e idioma.</li>
+        <li>Dashboard com status real dos ativos, não apenas visual institucional.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="label">Trilha D · Maturidade</div>
+      <h3>Governança de mídia programática</h3>
+      <ul class="list">
+        <li>Documentação viva com dono e data de atualização.</li>
+        <li>Métricas por ativo: tráfego, receita, RPM, indexação e volume editorial.</li>
+        <li>Auditoria mensal de fontes, feeds, scraping e qualidade de publicação.</li>
+        <li>Roadmap financeiro por portal, com cenários conservador, realista e agressivo.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer">PEG MediaOS · Superdocumentação Visual Final · Arquivo estático · Sem backend · Inclui pipeline editorial animado, seção de evidência por estágio e roadmap separado por trilhas.</div>
+</section>
+  </main>
+</div>
+<script>
+const links=[...document.querySelectorAll('#nav a')];const sections=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);function onScroll(){const h=document.documentElement;document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';let cur=sections[0]?.id;for(const s of sections){if(s.getBoundingClientRect().top<180)cur=s.id}links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+cur))}document.addEventListener('scroll',onScroll,{passive:true});onScroll();
+</script>
+</body>
+</html>

@@ -10,7 +10,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from .logger import get_logger, sanitize_sensitive_data
+from filelock import FileLock
+
+from .logger import get_logger, sanitize_sensitive_data, get_run_dir
 
 
 _logger = get_logger()
@@ -710,15 +712,22 @@ def save_site_profile(
         }
 
     try:
-        destino.write_text(
-            json.dumps(seguro, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
+        lock_path = destino.with_suffix(".json.lock")
+        with FileLock(str(lock_path), timeout=10):
+            destino.write_text(
+                json.dumps(seguro, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
         _logger.info("Profile salvo: %s", destino)
     except OSError as exc:
         _logger.error("Falha ao gravar profile %s: %s", destino, exc)
         return {"status": "erro",
                 "message": f"Falha ao gravar arquivo: {exc}",
+                "path": None, "slug": slug, "errors": [str(exc)]}
+    except Exception as exc:
+        _logger.error("Falha de concorrência ou FileLock no profile %s: %s", destino, exc)
+        return {"status": "erro",
+                "message": f"Falha de concorrencia ao gravar arquivo: {exc}",
                 "path": None, "slug": slug, "errors": [str(exc)]}
 
     return {
@@ -816,17 +825,24 @@ def gerar_relatorio(contexto: dict) -> Path:
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_dominio = (dominio or "site").replace("/", "_").replace(":", "_")
-    caminho = logs_dir() / f"relatorio_{safe_dominio}_{timestamp}.md"
+    
+    run_dir = get_run_dir()
+    if run_dir:
+        caminho = run_dir / "report.md"
+    else:
+        caminho = logs_dir() / f"relatorio_{safe_dominio}_{timestamp}.md"
 
     data_hora = (iniciado_em or datetime.now()).strftime("%Y-%m-%d %H:%M:%S")
 
     linhas: list[str] = []
-    linhas.append("# Relatorio PEG Portal Engine")
-    linhas.append(f"**Portal:** {portal_name}")
-    linhas.append(f"**Dominio:** {dominio}")
-    linhas.append(f"**Nicho:** {niche}")
-    linhas.append(f"**Data:** {data_hora}")
-    linhas.append(f"**Duracao total:** {duracao:.1f}s")
+    linhas.append("# Relatorio de Provisionamento")
+    linhas.append("")
+    linhas.append("## Metadados da Execucao")
+    linhas.append(f"- **Portal:** {portal_name}")
+    linhas.append(f"- **Dominio:** {dominio}")
+    linhas.append(f"- **Nicho:** {niche}")
+    linhas.append(f"- **Data:** {data_hora}")
+    linhas.append(f"- **Duracao total:** {duracao:.1f}s")
     linhas.append("")
 
     # Profile (se houver)
